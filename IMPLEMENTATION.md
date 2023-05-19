@@ -1,11 +1,9 @@
 # CS50 Nuggets
 ## Implementation Spec
-### Team name, term, year
-
-> This **template** includes some gray text meant to explain how to use the template; delete all of them in your document!
+### CecsC (Team 17), Spring, 2023
 
 According to the [Requirements Spec](REQUIREMENTS.md), the Nuggets game requires two standalone programs: a client and a server.
-Our design also includes x, y, z modules.
+Our implementation also includes `player`, `grid`, and `gridcell` modules.
 We describe each program and module separately.
 We do not describe the `support` library nor the modules that enable features that go beyond the spec.
 We avoid repeating information that is provided in the requirements spec.
@@ -17,8 +15,6 @@ We avoid repeating information that is provided in the requirements spec.
 > Who is responsible for various aspects of testing, for documentation, etc?
 
 ## Player
-
-> Teams of 3 students should delete this section.
 
 ### Data structures
 
@@ -57,16 +53,38 @@ static int parseArgs(const int argc, char* argv[]);
 > For each new data structure, describe it briefly and provide a code block listing the `struct` definition(s).
 > No need to provide `struct` for existing CS50 data structures like `hashtable`.
 
+We use three data structures: an array of `player`s, which contains data for each player, a `grid` that stores the game map, and `gridcell` which stores data for an individual cell in the grid.
+
 ### Definition of function prototypes
 
 > For function, provide a brief description and then a code block with its function prototype.
 > For example:
 
-A function to parse the command-line arguments, initialize the game struct, initialize the message module, and (BEYOND SPEC) initialize analytics module.
-
+A function to parse the command-line arguments
 ```c
 static int parseArgs(const int argc, char* argv[]);
 ```
+
+A function to initialize the game struct
+```c
+static void initializeGame(char* mapFileName, const int seed)
+```
+
+A function to update all players when changes on the map occur
+```c
+static void updatePlayers(players_t* allPlayers, grid_t* map)
+```
+
+A function to update all clients when changes on the map occur
+```c
+static void updateClients(clients_t* allClients)
+```
+
+A function to display the game over message and player stats
+```c
+static void gameOver(players_t* allPlayers)
+```
+
 ### Detailed pseudo code
 
 > For each function write pseudocode indented by a tab, which in Markdown will cause it to be rendered in literal form (like a code block).
