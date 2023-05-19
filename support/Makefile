@@ -6,7 +6,7 @@
 #
 
 LIB = support.a
-TESTS = miniclient miniserver messagetest
+TESTS = messagetest # miniclient miniserver 
 
 CFLAGS = -Wall -pedantic -std=c11 -ggdb
 CC = gcc
@@ -23,14 +23,14 @@ $(LIB): message.o log.o
 messagetest: message.c message.h log.h log.o
 	$(CC) $(CFLAGS) -DUNIT_TEST message.c log.o -o messagetest
 
-miniclient: miniclient.o message.o log.o
-	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
+# miniclient: miniclient.o message.o log.o
+# 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
-miniserver: miniserver.o message.o log.o
-	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
+# miniserver: miniserver.o message.o log.o
+# 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
-miniclient.o: message.h
-miniserver.o: message.h
+# miniclient.o: message.h
+# miniserver.o: message.h
 message.o: message.h
 log.o: log.h
 

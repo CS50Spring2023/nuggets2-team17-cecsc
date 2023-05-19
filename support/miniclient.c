@@ -38,7 +38,7 @@ main(const int argc, char* argv[])
   // commandline provides address for server
   const char* serverHost = argv[1];
   const char* serverPort = argv[2];
-  addr_t server; // address of the server
+     server; // address of the server
   if (!message_setAddr(serverHost, serverPort, &server)) {
     fprintf(stderr, "can't form address from %s %s\n", serverHost, serverPort);
     return 4; // bad hostname/port
