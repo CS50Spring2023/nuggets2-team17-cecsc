@@ -28,10 +28,10 @@ player_t* player_new(char c, char* name) {                               //note:
     player_t* player = mem_mallocc(sizeof(player_t));
     player->c = c;
     player->name = name;
-    score = 0;
-    x = 0;
-    y = 0;
-    active = true;                                                      //note should not start active yet?
+    player->score = 0;
+    player->x = 0;
+    player->y = 0;
+    player->active = true;                                                      //note should not start active yet?
     
 }
 
@@ -68,11 +68,12 @@ void player_move(player_t* player, player_t* mover, char keystroke) {
 
       //move 'c' character based on game logic + walls
       grid_move(player->grid, player_t* mover, char keystroke)                //note: not written yet
+      grid_update_visibility(player->grid, player_t* player)                  //note: not written yet
 
     } else {
       grid_move(player->grid, player_t* mover, char keystroke)                //note: not written yet
 
-      grid_update_visibility(player->grid, player_t* player)                  //note: not written yet
+      
     }
     
 
