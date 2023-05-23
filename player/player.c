@@ -35,20 +35,13 @@ player_t* player_new(char c, char* name) {                               //note:
     
 }
 
-void player_load_map(player_t* player, char* map) {
+void player_set_map(player_t* player, char* map) {
 
   player->grid = grid_new(NR, NC)                                     //note: should these get passed in or dimensions inferred?
   grid_load(map);
 
 }
 
-void player_deactivate(player_t* player) {
-
-  if (player->active == true) {
-    active = false;
-    return;
-  }
-}
 
 void player_delete(player_t* player) {
 
@@ -90,4 +83,112 @@ if valid keystroke
 	  modify where '@' symbol is on player's grid based on keystroke
 	update visibility based on movement
   
-  */
+*/
+
+/***** GETTER / SETTER FUNCTIONS *****/
+grid_t* grid;       // personal map of what they can see
+char c;               //what character they are
+char* name;           //what they say their name is
+int score;            //current score
+int x;                //location
+int y;                //location
+bool active;          //still in or has quit?
+
+grid_t* player_get_grid(player_t* player) {
+
+  if (player != NULL) {
+    return player->grid;
+  }
+}
+
+char player_get_c(player_t* player) {
+
+  if (player != NULL) {
+    return player->c;
+  }
+}
+
+char* player_get_name(player_t* player) {
+
+  if (player != NULL) {
+    return player->name;
+  }
+}
+
+int player_get_score(player_t* player) {
+
+  if (player != NULL) {
+    return player->score;
+  }
+}
+
+int player_get_x(player_t* player) {
+
+  if (player != NULL) {
+    return player->x;
+  }
+}
+
+int player_get_y(player_t* player) {
+
+  if (player != NULL) {
+    return player->y;
+  }
+}
+
+bool player_is_active(player_t* player) {
+
+  if (player != NULL) {
+    return player->active;
+  }
+}
+
+
+
+
+void player_set_c(player_t* player, char c) {
+
+  if (player != NULL && c != NULL) {
+    player->c = c;
+  }
+}
+
+void player_set_name(player_t* player, char* name) {
+
+  if (player != NULL && name != NULL) {
+    player->name = name;
+  }
+}
+
+
+void player_set_score(player_t* player, int score) {
+
+  if (player != NULL) {
+    player->score = score;
+  }
+}
+
+
+void player_set_x(player_t* player, int x) {
+
+  if (player != NULL) {
+    player->x = x;
+  }
+}
+
+
+void player_set_y(player_t* player, int y) {
+
+  if (player != NULL) {
+    player->y = y;
+  }
+}
+
+
+void player_deactivate(player_t* player) {
+
+  if (player->active == true) {
+    active = false;
+    return;
+  }
+}
