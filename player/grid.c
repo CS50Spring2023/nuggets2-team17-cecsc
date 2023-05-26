@@ -45,6 +45,9 @@ puts(grid);         // produces the output below
 #include <stdlib.h>
 #include <string.h>
 #include "player.h"
+#include "grid.h"
+#include "file.h"
+#include "mem.h"
 #include "gridcell.h"
 
 /**************** file-local global variables ****************/
@@ -52,23 +55,116 @@ puts(grid);         // produces the output below
 
 /**************** global types ****************/
 typedef struct grid {
-  gridcell_t** gridarray;       // head of the list of items in bag
+  gridcell_t** gridarray;       // array of gridcells in the grid
+  char* map;
+  int NR;                       // number of rows
+  int NC;                       // number of columns
 } grid_t;
 
 
 //display consists of NR+1, NC (to fit text header)                 //note: do i need to allocate here or within gridcell_new?
 grid_t* grid_new(int NR, int NC) {
   // Allocate memory for the grid structure
-  grid_t* grid = (grid_t*)malloc(sizeof(grid_t));
+  grid_t* grid = mem_assert(malloc(sizeof(grid_t)), "grid memory error");
   
   // Allocate memory for the rows of the gridarray
-  grid->gridarray = (gridcell_t**)malloc(NR * NC * sizeof(gridcell_t*));
+  grid->gridarray = mem_assert(malloc(NR * NC * sizeof(gridcell_t*)), "gridarray memory error");
 
   // Return the initialized grid
   return grid;
 }
 
-//loads given map into grid
-void grid_load(grid_t* grid, char* map) {
-  
+
+
+//loads given file into grid
+void grid_load(grid_t* grid, char* pathName) 
+{
+  // check arguments
+  if (grid == NULL || pathName == NULL) {
+      fprintf(stderr, "Null grid or Pathname");
+      return;
+  }
+
+  // open file, check if worked
+  FILE* fp;
+  fp = fopen(pathName, "r");
+  if (fp == NULL) {
+    fprintf(stderr, "Failed to open file: %s\n", pathName);
+    return;
+  }
+   
+  // get number of columns
+  char* lineOne = file_readLine(fp);
+  int numCols = strlen(lineOne);
+  grid->NC = numCols;
+  rewind(fp);
+
+  //get number of rows
+  int numRows = file_numLines(fp);
+  grid->NR = numRows;
+
+  // for each character, concatenate to end of string with strncat
+  char* map = malloc(numRows*numCols + 1); // string of all the characters in the map
+  char* line;
+  for (int i = 0; (line = file_readLine(fp)) != NULL; i++) {
+    for (int j = 0; j < numCols; j++) {
+      char c = line[j];
+      strncat(map, &c, 1);
+    }
+  }
+  map[numRows*numCols] = '\0'; // add null character to the end
+
+  printf("%s\n", map);
+  printf("%d\n%d\n", grid->NR, grid->NC);
+
+  fclose(fp);
+
+
 }
+
+void grid_set(grid_t* grid, int x, int y, char c)
+{
+  if (grid == NULL || x < 0 || y < 0) {
+    fprintf(stderr, "One or more grid_set args is null");
+  }
+
+  int idx = grid->NC * (y-1) + x - 1;
+
+  gridcell_set(grid->gridarray[idx], c);
+}
+
+void grid_delete(grid_t* grid)
+ {
+  int arraySize = grid->NR * grid->NC;   // calculate size of gridarray
+
+  for (int i = 0; i < arraySize; i++) {
+    gridcell_delete(grid->gridarray[i]);
+  }
+
+  free(grid->gridarray);
+  free(grid);
+ }
+
+ gridcell_t* grid_get_cell(grid_t* grid, int x, int y) {
+
+  gridcell_t* gridcell = (grid->gridarray)[((grid->NC * y) + x)];
+
+  if (gridcell == NULL) {
+    fprintf(stderr, "gridcell is null for grid_get_cell\n");
+  } 
+
+  return gridcell;
+ }
+
+ void grid_move(player->grid, player_t* mover, char key) {
+
+  int x = player_get_x(player_t* mover);
+  int y = player_get_y(player_t* )
+
+  //move left
+  if (key == 'h') {
+    char c = gridcell_getC()
+  }
+ }
+
+ void grid_update()

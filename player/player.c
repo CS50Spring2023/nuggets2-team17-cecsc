@@ -21,9 +21,10 @@ typedef struct player {
   int x;                //location
   int y;                //location
   bool active;          //still in or has quit?
+  const addr_t addr;    //address of client corresponding to player
 } player_t;
 
-player_t* player_new(char c, char* name) {                               //note: should they get a grid loaded in?
+player_t* player_new(char c, char* name, const addr_t addr) {                               //note: should they get a grid loaded in?
 
     player_t* player = mem_mallocc(sizeof(player_t));
     player->c = c;
@@ -32,7 +33,7 @@ player_t* player_new(char c, char* name) {                               //note:
     player->x = 0;
     player->y = 0;
     player->active = true;                                                      //note should not start active yet?
-    
+    player->addr = addr;
 }
 
 void player_set_map(player_t* player, char* map) {
@@ -53,20 +54,21 @@ void player_delete(player_t* player) {
   }
 }
 
-void player_move(player_t* player, player_t* mover, char keystroke) {
+void player_move(player_t* player, player_t* mover, char key) {
 
   //if valid keystroke {
-
-    if (player->c == mover->c) {
+    if (key == 'q') {
+      //player quits here, need function
+      player->active = false;
+    }
+    else if (player->c == mover->c) {
 
       //move 'c' character based on game logic + walls
-      grid_move(player->grid, player_t* mover, char keystroke)                //note: not written yet
+      grid_move(player->grid, player_t* mover, char key)                //note: not written yet
       grid_update_visibility(player->grid, player_t* player)                  //note: not written yet
 
     } else {
-      grid_move(player->grid, player_t* mover, char keystroke)                //note: not written yet
-
-      
+      grid_move(player->grid, player_t* mover, char key)                //note: not written yet
     }
     
 
@@ -86,32 +88,40 @@ if valid keystroke
 */
 
 /***** GETTER / SETTER FUNCTIONS *****/
-grid_t* grid;       // personal map of what they can see
-char c;               //what character they are
-char* name;           //what they say their name is
-int score;            //current score
-int x;                //location
-int y;                //location
-bool active;          //still in or has quit?
+addr_t get_addr(player_t* player) {
+
+  if (player != NULL && player->addr != NULL) {
+    return player->addr;
+  } else {
+    fprintf(stderr, "player or player address is null\n");
+  }
+}
+
 
 grid_t* player_get_grid(player_t* player) {
 
-  if (player != NULL) {
+  if (player != NULL && player->grid != NULL) {
     return player->grid;
+  } else {
+    fprintf(stderr, "player or player grid is null\n");
   }
 }
 
 char player_get_c(player_t* player) {
 
-  if (player != NULL) {
+  if (player != NULL && player->c != NULL) {
     return player->c;
+  } else {
+    fprintf(stderr, "player or player c is null\n");
   }
 }
 
 char* player_get_name(player_t* player) {
 
-  if (player != NULL) {
+  if (player != NULL && player->name != NULL) {
     return player->name;
+  } else {
+    fprintf(stderr, "player or player name is null\n");
   }
 }
 
@@ -119,6 +129,8 @@ int player_get_score(player_t* player) {
 
   if (player != NULL) {
     return player->score;
+  } else {
+    fprintf(stderr, "player or player score is null\n");
   }
 }
 
@@ -126,6 +138,8 @@ int player_get_x(player_t* player) {
 
   if (player != NULL) {
     return player->x;
+  } else {
+    fprintf(stderr, "player or player x coord is null\n");
   }
 }
 
@@ -133,6 +147,8 @@ int player_get_y(player_t* player) {
 
   if (player != NULL) {
     return player->y;
+  } else {
+    fprintf(stderr, "player or player y coord is null\n");
   }
 }
 

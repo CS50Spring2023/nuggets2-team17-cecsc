@@ -16,12 +16,14 @@
 typedef struct spectator {
   grid_t* grid;       // personal map of what they can see
   bool active;          //still in or has quit?
+  const addr_t addr;    //address of client corresponding to spectator
 } spectator_t;
 
-spectator_t* spectator_new() {                               //note: should they get a grid loaded in?
+spectator_t* spectator_new(const addr_t addr) {                               //note: should they get a grid loaded in?
 
     spectator_t* spectator = mem_mallocc(sizeof(spectator_t));
     active = true;                                                      //note should not start active yet?
+    spectator->addr = addr;
     
 }
 

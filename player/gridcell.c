@@ -1,5 +1,11 @@
 /* 
+ * CS50 NUggets Project
+ * Team 17 - CecsC
+ * 
  * gridcell.c - CS50 'gridcell' module
+ * The gridcell module defines each individual piece of the gridcell,
+ * storing its character (wall, blank, gold, etc), its location, and
+ * whether or not it can be seen 
  *
  * see gridcell.h for more information.
  *
@@ -11,7 +17,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "player.h"
+#include "mem.h"
 #include "grid.h"
+#include "gridcell.h"
 
 /**************** file-local global variables ****************/
 /* none */
@@ -21,22 +29,82 @@ typedef struct gridcell {
   char c;                       // actual makeup of cell
   int x;                        // x position in grid
   int y;                        //y position in grid
-  int g;                        //amount of gold in place, 0 if none
+  int gold;                        //amount of gold in place, 0 if none
   bool show;                    //if cell can be seen by player or not
+  bool room;                    //room or hallway space
   //maybe add player variable
 } gridcell_t;
 
 
 
-gridcell_t* gridcell_new(char c, int x, int y, int g, bool show) {
-
-    gridcell_t* gridcell = mem_malloc(sizeof(gridcell));
-    
-    gridcell->c = c;
-    gridcell->x = x;
-    gridcell->y = y;
-    gridcell->g = g;
-    gridcell->show = show;
+gridcell_t* gridcell_new(char c, int x, int y, int gold, bool show, bool room) 
+{
+  gridcell_t* gridcell = mem_assert(malloc(sizeof(gridcell_t)), "Gridcell allocation error");
+  
+  gridcell->c = c;
+  gridcell->x = x;
+  gridcell->y = y;
+  gridcell->gold = gold;
+  gridcell->show = show;
+  gridcell->room = room;
+  return gridcell;
 
 }
 
+
+void gridcell_set(gridcell_t* gridcell, char c)
+{
+  if (gridcell == NULL) {
+    fprintf(stderr, "gridcell null in gridcell_set");
+  }
+
+  gridcell->c = c;
+}
+
+
+int gridcell_getX(gridcell_t* gridcell)
+{
+  if (gridcell == NULL) {
+    fprintf(stderr, "gridcell null in gridcell_getX");
+  }
+
+  return gridcell->x;
+}
+
+int gridcell_getY(gridcell_t* gridcell)
+{
+  if (gridcell == NULL) {
+    fprintf(stderr, "gridcell null in gridcell_getY");
+  }
+
+  return gridcell->y;
+}
+
+
+void gridcell_print(gridcell_t* gridcell)
+{
+  if (gridcell == NULL) {
+    fprintf(stderr, "gridcell null in gridcell_print");
+  }
+
+  printf("%c\n", gridcell->c);
+}
+
+
+void gridcell_delete(gridcell_t* gridcell)
+{
+  if (gridcell == NULL) {
+    fprintf(stderr, "Null gridcell to delete");
+  } else {
+    free(gridcell);
+  }
+}
+
+char gridcell_getC(gridcell_t* gridcell) 
+{
+  if (gridcell == NULL) {
+    return NULL;
+  }
+
+  return gridcell->c;
+}
