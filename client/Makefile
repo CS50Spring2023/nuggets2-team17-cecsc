@@ -18,7 +18,7 @@ MAKE = make
 all: client
 
 client: client.o $(LIBS)
-	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
+	$(CC) $(CFLAGS) $^ $(LIBS) -lcurses -o $@
 
 # indexer source dependencies
 client.o:  $S/message.h
