@@ -158,21 +158,21 @@ void grid_delete(grid_t* grid)
 
 /******set of all grid_move help functions**********/
 
-int grid_move_left(grid_t* grid, player_t* mover, int* goldLeft) {
+int grid_move_left(grid_t* grid, player_t* mover, bool samePlayer) {
 
   //get information about mover's current place
   int x = player_get_x(mover);
   int y = player_get_y(mover);
   gridcell_t* currCell = grid_get_cell(grid, x, y);
   char c = gridcell_getC(currCell);
-
+  
   if (c == NULL) {
     fprintf(stderr, "something wrong with current character in grid_move\n");
   }
 
   //move left
   gridcell_t* leftCell = grid_get_cell(grid, x-1, y);
-  char l = gridcell_getC(leftCell)
+  char l = gridcell_getC(leftCell);
   //can't move left
   if (l == '|' || l == NULL || l == '_' || l == '+') {
     return 1;
@@ -205,7 +205,7 @@ int grid_move_left(grid_t* grid, player_t* mover, int* goldLeft) {
 
 
 
-int grid_move_right(grid_t* grid, player_t* mover, int* goldLeft) {
+int grid_move_right(grid_t* grid, player_t* mover, bool samePlayer) {
 
   //get information about mover's current place
   int x = player_get_x(mover);
@@ -236,7 +236,7 @@ int grid_move_right(grid_t* grid, player_t* mover, int* goldLeft) {
   }
 }
 
-int grid_move_up(grid_t* grid, player_t* mover, int* goldLeft) {
+int grid_move_up(grid_t* grid, player_t* mover, bool samePlayer) {
 
   //get information about mover's current place
   int x = player_get_x(mover);
@@ -269,7 +269,7 @@ int grid_move_up(grid_t* grid, player_t* mover, int* goldLeft) {
 
 }
 
-int grid_move_down(grid_t* grid, player_t* mover, int* goldLeft) {
+int grid_move_down(grid_t* grid, player_t* mover, bool samePlayer) {
 
   //get information about mover's current place
   int x = player_get_x(mover);
@@ -300,7 +300,7 @@ int grid_move_down(grid_t* grid, player_t* mover, int* goldLeft) {
   }
 }
 
-int grid_move_ul(grid_t* grid, player_t* mover, int* goldLeft) {
+int grid_move_ul(grid_t* grid, player_t* mover, bool samePlayer) {
 
   //get information about mover's current place
   int x = player_get_x(mover);
@@ -332,7 +332,7 @@ int grid_move_ul(grid_t* grid, player_t* mover, int* goldLeft) {
 }
 
 
-int grid_move_ur(grid_t* grid, player_t* mover, int* goldLeft) {
+int grid_move_ur(grid_t* grid, player_t* mover, bool samePlayer) {
 
   //get information about mover's current place
   int x = player_get_x(mover);
@@ -364,7 +364,7 @@ int grid_move_ur(grid_t* grid, player_t* mover, int* goldLeft) {
 }
 
 
-int grid_move_dl(grid_t* grid, player_t* mover, int* goldLeft) {
+int grid_move_dl(grid_t* grid, player_t* mover, bool samePlayer) {
 
   //get information about mover's current place
   int x = player_get_x(mover);
@@ -396,7 +396,7 @@ int grid_move_dl(grid_t* grid, player_t* mover, int* goldLeft) {
 }
 
 //moves character down and right
-int grid_move_dr(grid_t* grid, player_t* mover, int* goldLeft) {
+int grid_move_dr(grid_t* grid, player_t* mover, bool samePlayer) {
 
   //get information about mover's current place
   int x = player_get_x(mover);
@@ -429,66 +429,66 @@ int grid_move_dr(grid_t* grid, player_t* mover, int* goldLeft) {
 
 
 /********main function that moves characters on grid************/
- void grid_move(grid_t* grid, player_t* mover, char key) {
+ void grid_move(grid_t* grid, player_t* mover, char key, bool samePlayer) {
 
   //move left                 NOTE: do we have to check for x boundary or will it always be wthin wall
   if (key == 'h') {
-    int l = grid_move_left(grid, mover, goldLeft);
+    int l = grid_move_left(grid, mover, samePlayer);
   }
 
   //move right                
   if (key == 'l') {
-    int r = grid_move_right(grid, mover, goldLeft);
+    int r = grid_move_right(grid, mover, samePlayer);
   }
 
 
   //move up                 
   if (key == 'k') {
-    int u = grid_move_up(grid, mover, goldLeft);
+    int u = grid_move_up(grid, mover, samePlayer);
   }
 
 
   //move down                 
   if (key == 'j') {
-    int d = grid_move_down(grid, mover);
+    int d = grid_move_down(grid, mover, samePlayer);
   }
 
   //move up and left               
   if (key == 'y') {
-    int ul = grid_move_ul(grid, mover, goldLeft);
+    int ul = grid_move_ul(grid, mover, samePlayer);
   }
 
 
   //move up and right               
   if (key == 'u') {
-    int ur = grid_move_ur(grid, mover, goldLeft);
+    int ur = grid_move_ur(grid, mover, samePlayer);
   }
 
 
 
   //move down and left               
   if (key == 'b') {
-    int dl = grid_move_dl(grid, mover, goldLeft);
+    int dl = grid_move_dl(grid, mover, samePlayer);
   }
 
 
   //move down and right               
   if (key == 'n') {
-    int dr = grid_move_dr(grid, mover, goldLeft);
+    int dr = grid_move_dr(grid, mover, samePlayer);
   }
 
   //skip left
   if (key == 'H') {
     int L = 0;
     while (L < 1) {
-      L = grid_move_left(grid, mover, goldLeft);
+      L = grid_move_left(grid, mover, samePlayer);
     }
   }
   //skip right                
   if (key == 'L') {
     int R = 0;
     while (R < 1) {
-      R = grid_move_right(grid, mover, goldLeft);
+      R = grid_move_right(grid, mover, samePlayer);
     }
   }
 
@@ -497,7 +497,7 @@ int grid_move_dr(grid_t* grid, player_t* mover, int* goldLeft) {
   if (key == 'K') {
     int U = 0;
     while (U < 1) {
-      U = grid_move_up(grid, mover, goldLeft);
+      U = grid_move_up(grid, mover, samePlayer);
     }  
   }
 
@@ -506,7 +506,7 @@ int grid_move_dr(grid_t* grid, player_t* mover, int* goldLeft) {
   if (key == 'J') {
     int D = 0;
     while (D < 1) {
-      D = grid_move_down(grid, mover, goldLeft);
+      D = grid_move_down(grid, mover, samePlayer);
     }  
   }
 
@@ -514,7 +514,7 @@ int grid_move_dr(grid_t* grid, player_t* mover, int* goldLeft) {
   if (key == 'Y') {
     int UL = 0;
     while (UL < 1) {
-      UL = grid_move_ul(grid, mover, goldLeft);
+      UL = grid_move_ul(grid, mover, samePlayer);
     }  
   }
 
@@ -523,7 +523,7 @@ int grid_move_dr(grid_t* grid, player_t* mover, int* goldLeft) {
   if (key == 'U') {
     int UR = 0;
     while (UR < 1) {
-      UR = grid_move_ur(grid, mover, goldLeft);
+      UR = grid_move_ur(grid, mover, samePlayer);
     }  
   }
 
@@ -533,7 +533,7 @@ int grid_move_dr(grid_t* grid, player_t* mover, int* goldLeft) {
   if (key == 'B') {
     int DL = 0;
     while (DL < 1) {
-      DL = grid_move_dl(grid, mover, goldLeft);
+      DL = grid_move_dl(grid, mover, samePlayer);
     }  
   }
 
@@ -542,7 +542,7 @@ int grid_move_dr(grid_t* grid, player_t* mover, int* goldLeft) {
   if (key == 'N') {
     int DR = 0;
     while (DR < 1) {
-      DR = grid_move_dr(grid, mover, goldLeft);
+      DR = grid_move_dr(grid, mover, samePlayer);
     }  
   }
   

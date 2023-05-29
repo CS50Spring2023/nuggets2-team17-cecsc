@@ -1,3 +1,5 @@
+int g = 250
+numGold* = &g
 /* 
  * player.c - CS50 'player' module
  *
@@ -18,6 +20,7 @@ typedef struct player {
   char c;               //what character they are
   char* name;           //what they say their name is
   int score;            //current score
+  int justFound;        //gold found that round
   int x;                //location
   int y;                //location
   bool active;          //still in or has quit?
@@ -30,6 +33,7 @@ player_t* player_new(char c, char* name, const addr_t addr) {                   
     player->c = c;
     player->name = name;
     player->score = 0;
+    player->justFound = 0
     player->x = 0;
     player->y = 0;
     player->active = true;                                                      //note should not start active yet?
@@ -54,7 +58,7 @@ void player_delete(player_t* player) {
   }
 }
 
-int player_move(player_t* player, player_t* mover, char key) {
+void player_move(player_t* player, player_t* mover, char key) {
 
   if (player->c == mover->c) {
 
@@ -63,11 +67,11 @@ int player_move(player_t* player, player_t* mover, char key) {
     player->active = false;
     }
     //move 'c' character based on game logic + walls
-    int goldFound = grid_move(player->grid, player_t* mover, char key)                //note: not written yet
-    grid_update_visibility(player->grid, player_t* player)                  //note: not written yet
+    grid_move(player->grid, player_t* mover, char key, true);                //note: not written yet
+    grid_update_visibility(player->grid, player_t* player);                  //note: not written yet
 
   } else {
-    grid_move(player->grid, player_t* mover, char key)                //note: not written yet
+    grid_move(player->grid, player_t* mover, char key, false)                //note: not written yet
   }
   
 
@@ -133,6 +137,15 @@ int player_get_score(player_t* player) {
   }
 }
 
+int player_get_justFound(player_t* player) {
+
+  if (player != NULL) {
+    return player->justFound;
+  } else {
+    fprintf(stderr, "player or player justFound is null\n");
+  }
+}
+
 int player_get_x(player_t* player) {
 
   if (player != NULL) {
@@ -180,6 +193,13 @@ void player_set_score(player_t* player, int score) {
 
   if (player != NULL) {
     player->score = score;
+  }
+}
+
+void player_set_justFound(player_t* player, int justFound) {
+
+  if (player != NULL) {
+    player->justFound = justFound;
   }
 }
 

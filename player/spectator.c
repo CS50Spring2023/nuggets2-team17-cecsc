@@ -14,7 +14,6 @@
 
 /**************** global types ****************/
 typedef struct spectator {
-  grid_t* grid;       // personal map of what they can see
   bool active;          //still in or has quit?
   const addr_t addr;    //address of client corresponding to spectator
 } spectator_t;
@@ -26,14 +25,14 @@ spectator_t* spectator_new(const addr_t addr) {                               //
     spectator->addr = addr;
     
 }
-
+/*
 void spectator_load_map(spectator_t* spectator, char* map) {
 
   spectator->grid = grid_new(NR, NC)                                     //note: should these get passed in or dimensions inferred?
   grid_load(map);
 
 }
-
+*/
 void spectator_deactivate(spectator_t* spectator) {
 
   if (spectator->active == true) {
