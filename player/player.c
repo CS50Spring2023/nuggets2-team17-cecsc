@@ -180,3 +180,45 @@ void player_deactivate(player_t* player) {
     return;
   }
 }
+
+char* player_get_string(player_t* player, grid_t* grid) {
+
+  int totalCells = (grid_get_NC(grid)) * (grid_get_NR(grid));
+  char* map = mem_malloc(sizeof(char) * (totalCells + NR) + 1);
+  int index = 0;
+  for (int i; i < totalCells; i++) {
+
+    gridcell_t* cell = (grid_get_gridarray(grid, i));                       //new getter needed
+    char c = gridcell_getC(cell);
+
+    //if cell has been seen
+    if (player_get_boolGrid(player, i)) {
+
+      if (c == '*') {
+
+        bool stillVis = grid_isVisible(grid, grid_get(player_get_x(player), player_get_y(player)), cell);
+        if (stillVis) {
+          map[index] = '*';
+        } else {
+          map[index] = '.';
+        }
+      } else {
+        map[index] = c;
+      }
+    } else {
+      map[index] = ' ';
+    }
+    index++;
+
+    //at end of row?
+    if (((i+1) % grid_get_NC(grid)) == 0) {
+      grid->map[index] = '\n';
+      index++;
+    }
+  }
+
+  map[index] = '\0';
+
+}
+
+

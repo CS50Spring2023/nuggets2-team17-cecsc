@@ -32,3 +32,5 @@ void player_set_x(player_t* player, int x);
 void player_set_y(player_t* player, int y);
 
 void player_deactivate(player_t* player);
+
+char* player_get_string(player_t* player, grid_t* grid);
