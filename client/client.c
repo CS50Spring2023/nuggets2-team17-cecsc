@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <unistd.h>
 #include <ncurses.h>
 #include "message.h"
@@ -22,19 +21,20 @@
 static bool handleMessage(void* arg, const addr_t from, const char* message);
 static bool handleInput(void* arg);
 static void display_map(char* display);
-static void initialize_curses();      // CURSES
+static void initialize_curses(); // CURSES
 
-
-// global variables
-const char* valid_message_headers[] = {"OK", "GRID", "GOLD", "DISPLAY", "QUIT", "ERROR"};
-const int num_headers = 6;
+// handleMessage helpers
+static void handleOK();
+static bool handleGRID(const char* message);
+static bool handleGOLD(const char* message);
+static void handleDISPLAY(const char* message);
 
 // size of board, initialized to initial window size
 static int NROWS = -1;
 static int NCOLS = -1;
 
 // TEMP FOR DEBUGGING
-char* MAP = "  +----------+  |..........|  |.A........|  +-#--------+    #             #             #           +-#--------+  |..........|  |..........|  +----------+";
+char* MAP = "  +----------+  |..........|  |....A.....|  +-#--------+    #             #             #           +-#--------+  |..........|  |..........|  +----------+";
 
 /* ***************************
  *  main function
@@ -161,69 +161,35 @@ handleMessage(void* arg, const addr_t from, const char* message)
 
   // Find the position of the header within the message
   if (strncmp(message, "OK ", strlen("OK ")) == 0){
-    /* initialize curses library */
-    initialize_curses(); // CURSES
-    display_map("");
+    handleOK();
     // CONFIRMATION??
     message_send(from, "OK");
+    return false;
 
   } else if (strncmp(message, "GRID ", strlen("GRID ")) == 0) {
-    int nrows;
-    int ncols;
-    // assign values and check for null
-    if (sscanf(message, "GRID %d %d", &nrows, &ncols) != 2) {
-      fprintf(stderr, "ERROR: Malformed GRID message '%s'", message);
-      return false;
-    }
-    // if not null, verify screen size
-    if (nrows > NROWS || ncols > NCOLS) {
-      endwin(); // CURSES
-      fprintf(stderr, "ERROR: incompatible screen of size [%d, %d] for [%d, %d]\n", NROWS, NCOLS, nrows, ncols);
-      exit(6);
-    } else {
-      // update with screen output dimensions
-      NROWS = nrows;
-      NCOLS = ncols;
+    if (!handleGRID(message)) {
+      // bag grid
+      message_send(from, "IGNORED");
     }
     // CONFIRMATION??
     message_send(from, "OK");
+    return false;
 
   } else if (strncmp(message, "GOLD ", strlen("GOLD ")) == 0) {
-    // ints to store gold information to display in curse
-    int gold_collected;
-    int gold_purse;
-    int gold_left;
-    if (sscanf(message, "GOLD %d %d %d", &gold_collected, &gold_purse, &gold_left) != 3) {
-      // INVALID GOLD MESSAGE SENT
-      fprintf(stderr, "ERROR: Malformed GOLD message '%s'", message);
-      // CONFIRMATION??
-      message_send(from, "IGNORED");
-    } else {
-      // display info message
-      for (int col = 0; col < NCOLS; col++) {
-        move(0, col);
-        addch(' ');
-      }
-      mvprintw(0,0, "Gold Collected: %d\tGold in Purse: %d\tGold Left: %d", gold_collected, gold_purse, gold_left);    // CURSES
-      refresh();                              // CURSES
+    if (handleGOLD(message)) {
       // CONFIRMATION??
       message_send(from, "OK");
+    } else {
+      // CONFIRMATION??
+      message_send(from, "IGNORED");
     }
 
   } else if (strncmp(message, "DISPLAY\n", strlen("DISPLAY\n")) == 0) {
-    /* get display contents */
-    size_t headerLength = strlen("DISPLAY\n");
-    size_t displayLength = strlen(message) - headerLength + 1;
-    // display buffer
-    char display[displayLength]; 
-    strncpy(display, message + headerLength, displayLength);
-    display[displayLength] = '\0'; // in-case length is such that last terminating character is not copied
-    
-    // print display
-    display_map(display);
+    handleDISPLAY(message);
 
     // CONFIRMATION??
     message_send(from, "OK");
+
     return false;
 
   } else if (strncmp(message, "QUIT ", strlen("QUIT ")) == 0) {
@@ -232,8 +198,10 @@ handleMessage(void* arg, const addr_t from, const char* message)
 
   } else if (strncmp(message, "ERROR ", strlen("ERROR ")) == 0) {
     fprintf(stdout, "ERROR: From server '%s'\n", message);
+    return false;
 
   } else {
+    // MALFORMED MESSAGE -- IGNORE
     // fprintf(stderr, "ERROR: Malformed message '%s'\n", message);
     return false;
   }
@@ -241,10 +209,96 @@ handleMessage(void* arg, const addr_t from, const char* message)
   return false;
 }
 
+/**************** handleOK ****************/
+/* no arguments                                           */
+/* initializes CURSES, fills window with blank ' ' chars  */
+static void
+handleOK()
+{
+  /* initialize curses library */
+  initialize_curses(); // CURSES
+  display_map("");
+}
+
+/**************** handleGRID ****************/
+/* takes a char* as an argument, of the GRID message type.                          */
+/* GRID message must be in *exact* syntax as described in requirments.              */
+/* verifies that CURSES window is at least the required size (specified by message) */
+static bool
+handleGRID(const char* message)
+{
+  int nrows;
+  int ncols;
+  // assign values and check for null
+  if (sscanf(message, "GRID %d %d", &nrows, &ncols) != 2) {
+    fprintf(stderr, "ERROR: Malformed GRID message '%s'", message);
+    return false;
+  }
+  // if not null, verify screen size
+  if (nrows > NROWS || ncols > NCOLS) {
+    endwin(); // CURSES
+    fprintf(stderr, "ERROR: incompatible screen of size [%d, %d] for [%d, %d]\n", NROWS, NCOLS, nrows, ncols);
+    exit(6);
+  } else {
+    // update with screen output dimensions
+    NROWS = nrows;
+    NCOLS = ncols;
+  }
+  return true;
+}
+
+/**************** handleGOLD ****************/
+/* takes a char* as an argument, of the GOLD message type.             */
+/* GOLD message must be in *exact* syntax as described in requirments. */
+/* displays gold values in the topline of CURSES window                */
+static bool
+handleGOLD(const char* message)
+{
+  // ints to store gold information to display in curse
+  int gold_collected;
+  int gold_purse;
+  int gold_left;
+  if (sscanf(message, "GOLD %d %d %d", &gold_collected, &gold_purse, &gold_left) != 3) {
+    // INVALID GOLD MESSAGE SENT
+    fprintf(stderr, "ERROR: Malformed GOLD message '%s'", message);
+    return false;
+  } else {
+    // display info message
+    int temp = 0; // dummy
+    int ncols = 0;
+    getmaxyx(stdscr, temp, ncols);
+    (void)temp; // keep compiler from complaining
+    for (int col = 0; col < ncols; col++) {
+      move(0, col);
+      addch(' ');
+    }
+    mvprintw(0,0, "Gold Collected: %d\tGold in Purse: %d\tGold Left: %d", gold_collected, gold_purse, gold_left);    // CURSES
+    refresh();                              // CURSES
+    return true;
+  }
+}
+
+/**************** handleDISPLAY ****************/
+/* takes a char* as an argument, of the DISPLAY message type.             */
+/* DISPLAY message must be in *exact* syntax as described in requirments. */
+/* displays the chars following '\n' character in CURSES.                 */
+static void
+handleDISPLAY(const char* message)
+{
+  /* get display contents */
+  size_t headerLength = strlen("DISPLAY\n");
+  size_t displayLength = strlen(message) - headerLength + 1;
+  // display buffer
+  char display[displayLength]; 
+  strncpy(display, message + headerLength, displayLength);
+  display[displayLength] = '\0'; // in-case length is such that last terminating character is not copied
+  
+  // print display
+  display_map(display);
+}
+
 /* ************ initialize_curses *********************** */
-/*
- * initialize curses // CURSES everywhere in this function
- */
+/* initialize curses // CURSES everywhere in this function */
 static void
 initialize_curses()
 {
@@ -267,18 +321,17 @@ initialize_curses()
 }
 
 /* ************ display_map *********************** */
-/*
- * Display the map onto the screen;
- */
+/* Display the map (char* display) into CURSES screen */
 static void
 display_map(char* display)
 {
   // clear output
-  int max_nrows;
-  int max_ncols;
+  int max_nrows = 0;
+  int max_ncols = 0;
   getmaxyx(stdscr, max_nrows, max_ncols);
-  for (int row = 0; row < max_nrows; row++) {
+  for (int row = 1; row < max_nrows; row++) {
     for (int col = 0; col < max_ncols; col++) {
+      move(row, col);
       addch(' ');               // fill with blank
     }
   }
