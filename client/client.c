@@ -210,7 +210,7 @@ handleMessage(void* arg, const addr_t from, const char* message)
       message_send(from, "OK");
     }
 
-  } else if (strncmp(message, "DISPLAY ", strlen("DISPLAY ")) == 0) {
+  } else if (strncmp(message, "DISPLAY\n", strlen("DISPLAY\n")) == 0) {
     /* get display contents */
     size_t headerLength = strlen("DISPLAY\n");
     size_t displayLength = strlen(message) - headerLength + 1;
