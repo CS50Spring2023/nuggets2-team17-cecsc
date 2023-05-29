@@ -17,8 +17,9 @@ MAKE = make
 
 all: client
 
+# --disable-leaks for curses ??
 client: client.o $(LIBS)
-	$(CC) $(CFLAGS) $^ $(LIBS) -lcurses -o $@
+	$(CC) $(CFLAGS) $^ $(LIBS) -lcurses -o $@ 
 
 # indexer source dependencies
 client.o:  $S/message.h

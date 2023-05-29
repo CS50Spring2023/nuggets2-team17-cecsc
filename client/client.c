@@ -30,11 +30,11 @@ const char* valid_message_headers[] = {"OK", "GRID", "GOLD", "DISPLAY", "QUIT", 
 const int num_headers = 6;
 
 // size of board, initialized to initial window size
-static int NROWS;
-static int NCOLS;
+static int NROWS = -1;
+static int NCOLS = -1;
 
 // TEMP FOR DEBUGGING
-char* MAP = "  +----------+  |..........|  |....A.....|  +-#--------+    #             #             #           +-#--------+  |..........|  |..........|  +----------+";
+char* MAP = "  +----------+  |..........|  |.A........|  +-#--------+    #             #             #           +-#--------+  |..........|  |..........|  +----------+";
 
 /* ***************************
  *  main function
@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
 
     // shut down the message module
     message_done();
+    endwin(); // CURSES
 
     return ok ? 0 : 1;
 }
@@ -105,26 +106,42 @@ handleInput(void* arg)
     fprintf(stderr, "handleInput called without a correspondent.");
     return true;
   }
+
+  // if curses uninitialized
+  if (NROWS == -1 || NCOLS == -1) {
   
-  // allocate a buffer into which we can read a line of input
-  // (it can't be any longer than a message)!
-  char line[message_MaxBytes];
+    // allocate a buffer into which we can read a line of input
+    // (it can't be any longer than a message)!
+    char line[message_MaxBytes];
 
-  // read a line from stdin
-  if (fgets(line, message_MaxBytes, stdin) == NULL) {
-    // EOF case: stop looping
-    return true;
-  } else {
-    // strip trailing newline
-    const int len = strlen(line);
-    if (len > 0 && line[len-1] == '\n') {
-      line[len-1] = '\0';
+    // read a line from stdin
+    if (fgets(line, message_MaxBytes, stdin) == NULL) {
+      // EOF case: stop looping
+      return true;
+    } else {
+      // strip trailing newline
+      const int len = strlen(line);
+      if (len > 0 && line[len-1] == '\n') {
+        line[len-1] = '\0';
+      }
+
+      // send as message to server
+      message_send(*serverp, line);
+
+      // normal case: keep looping
+      return false;
     }
+  } else {
+    // gather key input
+    char c = getch();
+    char message[strlen("KEY " + 2)];
+    strcpy(message, "KEY ");
+    strcat(message, &c);
 
-    // send as message to server
-    message_send(*serverp, line);
+    // send keystroke
+    message_send(*serverp, message);
 
-    // normal case: keep looping
+    // keep looping
     return false;
   }
 }
@@ -143,68 +160,59 @@ handleMessage(void* arg, const addr_t from, const char* message)
   }
 
   // Find the position of the header within the message
-  if (strstr(message, "OK") != NULL){
+  if (strncmp(message, "OK ", strlen("OK ")) == 0){
     /* initialize curses library */
     initialize_curses(); // CURSES
     display_map("");
     // CONFIRMATION??
     message_send(from, "OK");
 
-  } else if (strstr(message, "GRID") != NULL) {
-    // assert the size of the grid
-    // char* msg_cpy = malloc(strlen(message)+1);
-    char* nrows_c;
-    char* ncols_c;
-    // strcpy(msg_cpy, message);
-    strtok((char*)message, " ");
+  } else if (strncmp(message, "GRID ", strlen("GRID ")) == 0) {
+    int nrows;
+    int ncols;
     // assign values and check for null
-    if ( (nrows_c = strtok(NULL, " ")) == NULL || (ncols_c = strtok(NULL, " ")) == NULL) {
-      message_send(from, "BAD");
+    if (sscanf(message, "GRID %d %d", &nrows, &ncols) != 2) {
+      fprintf(stderr, "ERROR: Malformed GRID message '%s'", message);
       return false;
     }
     // if not null, verify screen size
-    int nrows;
-    int ncols;
-    sscanf(nrows_c, "%d", &nrows);
-    sscanf(ncols_c, "%d", &ncols);
     if (nrows > NROWS || ncols > NCOLS) {
-      fprintf(stderr, "ERROR: incompatible screen size for [%d, %d]\n", nrows, ncols);
+      endwin(); // CURSES
+      fprintf(stderr, "ERROR: incompatible screen of size [%d, %d] for [%d, %d]\n", NROWS, NCOLS, nrows, ncols);
       exit(6);
     } else {
+      // update with screen output dimensions
       NROWS = nrows;
       NCOLS = ncols;
     }
     // CONFIRMATION??
     message_send(from, "OK");
 
-  } else if (strstr(message, "GOLD") != NULL) {
-    // character dummies to rea from message
-    char* n;
-    char* p;
-    char* r;
+  } else if (strncmp(message, "GOLD ", strlen("GOLD ")) == 0) {
     // ints to store gold information to display in curse
     int gold_collected;
     int gold_purse;
     int gold_left;
-    strtok((char*)message, " ");
-    if ((n = strtok(NULL, " ")) == NULL || (p = strtok(NULL, " ")) == NULL || (r = strtok(NULL, " ")) == NULL ) {
-      message_send(from, "BAD");
+    if (sscanf(message, "GOLD %d %d %d", &gold_collected, &gold_purse, &gold_left) != 3) {
       // INVALID GOLD MESSAGE SENT
+      fprintf(stderr, "ERROR: Malformed GOLD message '%s'", message);
+      // CONFIRMATION??
+      message_send(from, "IGNORED");
     } else {
-      // copy char value into int
-      sscanf(n, "%d", &gold_collected);
-      sscanf(p, "%d", &gold_purse);
-      sscanf(r, "%d", &gold_left);
       // display info message
+      for (int col = 0; col < NCOLS; col++) {
+        move(0, col);
+        addch(' ');
+      }
       mvprintw(0,0, "Gold Collected: %d\tGold in Purse: %d\tGold Left: %d", gold_collected, gold_purse, gold_left);    // CURSES
       refresh();                              // CURSES
+      // CONFIRMATION??
+      message_send(from, "OK");
     }
-    // CONFIRMATION??
-    message_send(from, "OK");
 
-  } else if (strstr(message, "DISPLAY") != NULL) {
+  } else if (strncmp(message, "DISPLAY ", strlen("DISPLAY ")) == 0) {
     /* get display contents */
-    size_t headerLength = strlen("DISPLAY\n") + 1;
+    size_t headerLength = strlen("DISPLAY\n");
     size_t displayLength = strlen(message) - headerLength + 1;
     // display buffer
     char display[displayLength]; 
@@ -218,15 +226,15 @@ handleMessage(void* arg, const addr_t from, const char* message)
     message_send(from, "OK");
     return false;
 
-  } else if (strstr(message, "QUIT") != NULL) {
-    fprintf(stdout, "%s", message);
+  } else if (strncmp(message, "QUIT ", strlen("QUIT ")) == 0) {
+    fprintf(stdout, "%s\n", message);
     return true;
 
-  } else if (strstr(message, "ERROR") != NULL) {
+  } else if (strncmp(message, "ERROR ", strlen("ERROR ")) == 0) {
+    fprintf(stdout, "ERROR: From server '%s'\n", message);
 
   } else {
-    message_send(from, "No valid header present!\n");
-    fprintf(stderr, "No valid header present!\n");
+    // fprintf(stderr, "ERROR: Malformed message '%s'\n", message);
     return false;
   }
   
@@ -248,13 +256,13 @@ initialize_curses()
   getmaxyx(stdscr, NROWS, NCOLS);
 
   cbreak(); // actually, this is the default
-  // noecho(); // don't show the characters users type
+  noecho(); // don't show the characters users type
 
   // I like yellow on a black background
   start_color();
   init_pair(1, COLOR_YELLOW, COLOR_BLACK);
   attron(COLOR_PAIR(1));
-  fprintf(stdout, "~~INITIALIZED~~\n");
+  fprintf(stdout, "INITIALIZED CURSES\n");
   fflush(stdout);
 }
 
@@ -265,6 +273,15 @@ initialize_curses()
 static void
 display_map(char* display)
 {
+  // clear output
+  int max_nrows;
+  int max_ncols;
+  getmaxyx(stdscr, max_nrows, max_ncols);
+  for (int row = 0; row < max_nrows; row++) {
+    for (int col = 0; col < max_ncols; col++) {
+      addch(' ');               // fill with blank
+    }
+  }
   for (int row = 0; row < NROWS; row++) {
     for (int col = 0; col < NCOLS; col++) {
       move(row+1,col);    // CURSES, +1 account for info line
@@ -278,24 +295,3 @@ display_map(char* display)
   }
   refresh();                              // CURSES
 }
-
-// static char*
-// message_header(const char* message)
-// {
-//   char* header;
-//   char* msg_cpy = malloc(strlen(message)+1);
-//   strcpy(msg_cpy, message);
-//   // defensive programming
-//   if ((header = strtok(msg_cpy, " ")) == NULL) {
-//     return NULL;
-//   }
-//   for (int i = 0; i < num_headers; i++) {
-//     // fprintf(stdout, "%s\n", valid_message_headers[i]);
-//     if (strcmp(header, valid_message_headers[i]) == 0) {
-//       return header;
-//     }
-//   }
-//   free(msg_cpy);
-
-//   return NULL;
-// }
