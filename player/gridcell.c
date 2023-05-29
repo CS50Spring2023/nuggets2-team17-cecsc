@@ -108,3 +108,12 @@ char gridcell_getC(gridcell_t* gridcell)
 
   return gridcell->c;
 }
+
+void gridcell_setGold(gridcell_t* gridcell, int g)
+{
+  if (gridcell == NULL) {
+    fprintf(stderr, "gridcell null in gridcell_setGold");
+  }
+
+  gridcell->gold = g;
+}

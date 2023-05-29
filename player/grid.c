@@ -429,7 +429,7 @@ int grid_move_dr(grid_t* grid, player_t* mover, int* goldLeft) {
 
 
 /********main function that moves characters on grid************/
- void grid_move(grid_t* grid, player_t* mover, char key, int* goldLeft) {
+ void grid_move(grid_t* grid, player_t* mover, char key) {
 
   //move left                 NOTE: do we have to check for x boundary or will it always be wthin wall
   if (key == 'h') {
@@ -546,7 +546,7 @@ int grid_move_dr(grid_t* grid, player_t* mover, int* goldLeft) {
     }  
   }
   
- }
+}
 
 //gives the map string to print given a grid
 void grid_update_map(grid_t* grid) {
@@ -569,5 +569,6 @@ void grid_update_map(grid_t* grid) {
 
   }
 }
+
 
 

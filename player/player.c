@@ -54,25 +54,24 @@ void player_delete(player_t* player) {
   }
 }
 
-void player_move(player_t* player, player_t* mover, char key) {
+int player_move(player_t* player, player_t* mover, char key) {
 
-  //if valid keystroke {
+  if (player->c == mover->c) {
+
     if (key == 'q') {
-      //player quits here, need function
-      player->active = false;
+    //player quits here, need function
+    player->active = false;
     }
-    else if (player->c == mover->c) {
+    //move 'c' character based on game logic + walls
+    int goldFound = grid_move(player->grid, player_t* mover, char key)                //note: not written yet
+    grid_update_visibility(player->grid, player_t* player)                  //note: not written yet
 
-      //move 'c' character based on game logic + walls
-      grid_move(player->grid, player_t* mover, char key)                //note: not written yet
-      grid_update_visibility(player->grid, player_t* player)                  //note: not written yet
+  } else {
+    grid_move(player->grid, player_t* mover, char key)                //note: not written yet
+  }
+  
 
-    } else {
-      grid_move(player->grid, player_t* mover, char key)                //note: not written yet
-    }
-    
 
-  //}
 
 }
 
@@ -88,7 +87,7 @@ if valid keystroke
 */
 
 /***** GETTER / SETTER FUNCTIONS *****/
-addr_t get_addr(player_t* player) {
+addr_t player_get_addr(player_t* player) {
 
   if (player != NULL && player->addr != NULL) {
     return player->addr;
