@@ -1,5 +1,3 @@
-int g = 250
-numGold* = &g
 /* 
  * player.c - CS50 'player' module
  *
@@ -16,79 +14,45 @@ numGold* = &g
 
 /**************** global types ****************/
 typedef struct player {
-  grid_t* grid;       // personal map of what they can see
+  bool* boolGrid;       // personal map of what they can see
   char c;               //what character they are
   char* name;           //what they say their name is
   int score;            //current score
-  int justFound;        //gold found that round
   int x;                //location
   int y;                //location
   bool active;          //still in or has quit?
   const addr_t addr;    //address of client corresponding to player
 } player_t;
 
-player_t* player_new(char c, char* name, const addr_t addr) {                               //note: should they get a grid loaded in?
+player_t* player_new(char c, char* name, const addr_t addr, int NR, int NC) {                               //note: should they get a grid loaded in?
 
     player_t* player = mem_mallocc(sizeof(player_t));
+
+    player->boolGrid = mem_malloc(sizeof(bool) * (NR * NC));  
+    for (int i = 0; i < (NR * NC; i++)) {
+    boolGrid[i] = false;
+    }
+
     player->c = c;
     player->name = name;
     player->score = 0;
-    player->justFound = 0
     player->x = 0;
     player->y = 0;
     player->active = true;                                                      //note should not start active yet?
     player->addr = addr;
 }
 
-void player_set_map(player_t* player, char* map) {
-
-  player->grid = grid_new(NR, NC)                                     //note: should these get passed in or dimensions inferred?
-  grid_load(map);
-
-}
-
 
 void player_delete(player_t* player) {
 
-  if (player->grid != NULL) {
-    grid_delete(player->grid);
+  if (player->boolGrid != NULL) {
+    mem_free(boolGrid);
   }
   if (player != NULL) {
     mem_free(player);
   }
 }
 
-void player_move(player_t* player, player_t* mover, char key) {
-
-  if (player->c == mover->c) {
-
-    if (key == 'q') {
-    //player quits here, need function
-    player->active = false;
-    }
-    //move 'c' character based on game logic + walls
-    grid_move(player->grid, player_t* mover, char key, true);                //note: not written yet
-    grid_update_visibility(player->grid, player_t* player);                  //note: not written yet
-
-  } else {
-    grid_move(player->grid, player_t* mover, char key, false)                //note: not written yet
-  }
-  
-
-
-
-}
-
-/*
-
-if valid keystroke
-  if player != mover
-      modify where mover character is on player's grid based on keystroke
-  if player == mover
-	  modify where '@' symbol is on player's grid based on keystroke
-	update visibility based on movement
-  
-*/
 
 /***** GETTER / SETTER FUNCTIONS *****/
 addr_t player_get_addr(player_t* player) {
@@ -101,12 +65,12 @@ addr_t player_get_addr(player_t* player) {
 }
 
 
-grid_t* player_get_grid(player_t* player) {
+grid_t* player_get_boolGrid(player_t* player, int index) {
 
-  if (player != NULL && player->grid != NULL) {
-    return player->grid;
+  if (player != NULL && player->boolGrid != NULL) {
+    return player->boolGrid[index];
   } else {
-    fprintf(stderr, "player or player grid is null\n");
+    fprintf(stderr, "player or player boolgrid is null\n");
   }
 }
 
@@ -137,15 +101,6 @@ int player_get_score(player_t* player) {
   }
 }
 
-int player_get_justFound(player_t* player) {
-
-  if (player != NULL) {
-    return player->justFound;
-  } else {
-    fprintf(stderr, "player or player justFound is null\n");
-  }
-}
-
 int player_get_x(player_t* player) {
 
   if (player != NULL) {
@@ -172,8 +127,6 @@ bool player_is_active(player_t* player) {
 }
 
 
-
-
 void player_set_c(player_t* player, char c) {
 
   if (player != NULL && c != NULL) {
@@ -196,10 +149,10 @@ void player_set_score(player_t* player, int score) {
   }
 }
 
-void player_set_justFound(player_t* player, int justFound) {
+void player_set_boolGrid(player_t* player, int index, bool visible) {
 
   if (player != NULL) {
-    player->justFound = justFound;
+    player->boolGrid[index] = visible;
   }
 }
 
