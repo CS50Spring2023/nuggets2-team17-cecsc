@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     strncat(line, playername, message_MaxBytes-strlen("PLAY "));
     message_send(server, line);
   } else {
-    message_send(server, "PLAY");
+    message_send(server, "SPECTATE");
   }
 
   // Loop, waiting for input or for messages; provide callback functions.
