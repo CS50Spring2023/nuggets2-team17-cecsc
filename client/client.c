@@ -149,42 +149,31 @@ handleMessage(void* arg, const addr_t from, const char* message)
   // Find the position of the header within the message
   if (strncmp(message, "OK ", strlen("OK ")) == 0){
     handleOK();
-    // CONFIRMATION??
-    message_send(from, "OK");
+
     return false;
 
   } else if (strncmp(message, "GRID ", strlen("GRID ")) == 0) {
-    if (!handleGRID(message)) {
-      // bag grid
-      message_send(from, "IGNORED");
-    }
-    // CONFIRMATION??
-    message_send(from, "OK");
+    handleGRID(message);
+
     return false;
 
   } else if (strncmp(message, "GOLD ", strlen("GOLD ")) == 0) {
-    if (handleGOLD(message)) {
-      // CONFIRMATION??
-      message_send(from, "OK");
-    } else {
-      // CONFIRMATION??
-      message_send(from, "IGNORED");
-    }
+    handleGOLD(message);
+
+    return false;
 
   } else if (strncmp(message, "DISPLAY\n", strlen("DISPLAY\n")) == 0) {
     handleDISPLAY(message);
-
-    // CONFIRMATION??
-    message_send(from, "OK");
 
     return false;
 
   } else if (strncmp(message, "QUIT ", strlen("QUIT ")) == 0) {
     fprintf(stdout, "%s\n", message);
+    fflush(stdout);
     return true;
 
   } else if (strncmp(message, "ERROR ", strlen("ERROR ")) == 0) {
-    fprintf(stdout, "ERROR: From server '%s'\n", message);
+    // fprintf(stdout, "ERROR: From server '%s'\n", message);
     return false;
 
   } else {
@@ -307,8 +296,6 @@ initialize_curses()
   start_color();
   init_pair(1, COLOR_YELLOW, COLOR_BLACK);
   attron(COLOR_PAIR(1));
-  fprintf(stdout, "INITIALIZED CURSES\n");
-  fflush(stdout);
 }
 
 /* ************ display_map *********************** */
@@ -329,9 +316,9 @@ display_map(char* display)
   for (int row = 0; row < NROWS; row++) {
     for (int col = 0; col < NCOLS; col++) {
       move(row+1,col);                          // CURSES, +1 account for info line
-      int idx = row * NCOLS + col;
+      int idx = row * (NCOLS+1) + col;
       if (idx < strlen(display)) {                
-        addch(display[row * NCOLS + col]);      // CURSES
+        addch(display[idx]);  // CURSES
       } else {
         addch(' ');                             // fill with blank
       }
