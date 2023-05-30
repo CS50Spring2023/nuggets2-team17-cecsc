@@ -168,8 +168,10 @@ handleMessage(void* arg, const addr_t from, const char* message)
     return false;
 
   } else if (strncmp(message, "QUIT ", strlen("QUIT ")) == 0) {
-    fprintf(stdout, "%s\n", message);
+    // close curses
+    endwin(); // CURSES
     fflush(stdout);
+    fprintf(stdout, "\n%s\n", message);
     return true;
 
   } else if (strncmp(message, "ERROR ", strlen("ERROR ")) == 0) {
