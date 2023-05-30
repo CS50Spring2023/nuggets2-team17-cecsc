@@ -32,8 +32,8 @@ static bool handleGOLD(const char* message);
 static void handleDISPLAY(const char* message);
 
 // size of board, initialized to initial window size
-static int NROWS = -1;
-static int NCOLS = -1;
+static int NROWS;
+static int NCOLS;
 
 /* ***************************
  *  main function
@@ -119,43 +119,18 @@ handleInput(void* arg)
     return true;
   }
 
-  // if curses uninitialized
-  if (NROWS == -1 || NCOLS == -1) {
-  
-    // allocate a buffer into which we can read a line of input
-    // (it can't be any longer than a message)!
-    char line[message_MaxBytes];
+  // gather key input
+  char c = getch();
+  char message[strlen("KEY ") + 2];
+  strcpy(message, "KEY ");
+  strcat(message, &c);
+  message[strlen("KEY ") + 1] = '\0';
 
-    // read a line from stdin
-    if (fgets(line, message_MaxBytes, stdin) == NULL) {
-      // EOF case: stop looping
-      return true;
-    } else {
-      // strip trailing newline
-      const int len = strlen(line);
-      if (len > 0 && line[len-1] == '\n') {
-        line[len-1] = '\0';
-      }
+  // send keystroke
+  message_send(*serverp, message);
 
-      // send as message to server
-      message_send(*serverp, line);
-
-      // normal case: keep looping
-      return false;
-    }
-  } else {
-    // gather key input
-    char c = getch();
-    char message[strlen("KEY " + 2)];
-    strcpy(message, "KEY ");
-    strcat(message, &c);
-
-    // send keystroke
-    message_send(*serverp, message);
-
-    // keep looping
-    return false;
-  }
+  // keep looping
+  return false;
 }
 
 /**************** handleMessage ****************/
