@@ -95,6 +95,7 @@ int main(int argc, char *argv[])
   endwin(); // CURSES
   // shut down the message module
   message_done();
+  fprintf(stdout, "SHUT DOWN COMPLETE"); // ### DEBUGGING ###
 
   return ok ? 0 : 1;
 }
@@ -202,6 +203,7 @@ handleOK()
 /* takes a char* as an argument, of the GRID message type.                          */
 /* GRID message must be in *exact* syntax as described in requirments.              */
 /* verifies that CURSES window is at least the required size (specified by message) */
+/* "The display shall consist of NR+1 rows and NC columns" */
 static bool
 handleGRID(const char* message)
 {
@@ -213,13 +215,13 @@ handleGRID(const char* message)
     return false;
   }
   // if not null, verify screen size
-  if (nrows > NROWS || ncols > NCOLS) {
+  if (nrows+1 > NROWS || ncols > NCOLS) {
     endwin(); // CURSES
-    fprintf(stderr, "ERROR: incompatible screen of size [%d, %d] for [%d, %d]\n", NROWS, NCOLS, nrows, ncols);
+    fprintf(stderr, "ERROR: incompatible screen of size [%d, %d] for [%d, %d]\n", NROWS, NCOLS, nrows+1, ncols);
     exit(5);
   } else {
     // update with screen output dimensions
-    NROWS = nrows;
+    NROWS = nrows+1;
     NCOLS = ncols;
   }
   return true;
