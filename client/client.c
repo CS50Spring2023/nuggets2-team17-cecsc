@@ -78,12 +78,17 @@ int main(int argc, char *argv[])
   // connect to server
   const char* playername = argv[3];
   if (playername != NULL) {
+    // send playername to server
     char line[message_MaxBytes];
     strcpy(line, "PLAY ");
     strncat(line, playername, message_MaxBytes-strlen("PLAY "));
+    // connect as player
     message_send(server, line);
   } else {
+    // connect as spectator
     message_send(server, "SPECTATE");
+    // no ok message is sent, auto-initialize
+    handleOK();
   }
 
   // Loop, waiting for input or for messages; provide callback functions.
