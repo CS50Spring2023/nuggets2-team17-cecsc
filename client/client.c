@@ -75,6 +75,17 @@ int main(int argc, char *argv[])
       exit(4); // bad hostname/port
   }
 
+  // connect to server
+  const char* playername = argv[3];
+  if (playername != NULL) {
+    char line[message_MaxBytes];
+    strcpy(line, "PLAY ");
+    strncat(line, playername, message_MaxBytes-strlen("PLAY "));
+    message_send(server, line);
+  } else {
+    message_send(server, "PLAY");
+  }
+
   // Loop, waiting for input or for messages; provide callback functions.
   // We use the 'arg' parameter to carry a pointer to 'server'.
   
