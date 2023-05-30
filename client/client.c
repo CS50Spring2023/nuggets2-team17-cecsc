@@ -1,13 +1,15 @@
-/* client.c    Kyrylo Bakumenko    20 May, 2023
+/* client.c    Kyrylo Bakumenko    29 May, 2023
  *
- * This file ...
+ * This file provides the client side for the Nuggets project in CS50.
+ * The client is launched by the user providing hostname and port to connect to the server (see DESIGN.md).
+ * After connecting to the server the user declares themselves with a PLAY message. From this point, responses from
+ * the server are displayed using the ncurses library and the user interacts with the display using keystrokes.
  * 
  * Exit codes: 1 -> invalid number of arguments
  *             2 -> null argument passed
  *             3 -> failure to initialize messages module
  *             4 -> bad hostname or port
- *             5 -> ioctl error
- *             6 -> failed screen verification
+ *             5 -> failed screen verification
  */
 
 #include <stdio.h>
@@ -32,9 +34,6 @@ static void handleDISPLAY(const char* message);
 // size of board, initialized to initial window size
 static int NROWS = -1;
 static int NCOLS = -1;
-
-// TEMP FOR DEBUGGING
-char* MAP = "  +----------+  |..........|  |....A.....|  +-#--------+    #             #             #           +-#--------+  |..........|  |..........|  +----------+";
 
 /* ***************************
  *  main function
@@ -81,9 +80,10 @@ int main(int argc, char *argv[])
   
   bool ok = message_loop(&server, 0, NULL, handleInput, handleMessage);
 
+  // close curses
+  endwin(); // CURSES
   // shut down the message module
   message_done();
-  endwin(); // CURSES
 
   return ok ? 0 : 1;
 }
@@ -239,7 +239,7 @@ handleGRID(const char* message)
   if (nrows > NROWS || ncols > NCOLS) {
     endwin(); // CURSES
     fprintf(stderr, "ERROR: incompatible screen of size [%d, %d] for [%d, %d]\n", NROWS, NCOLS, nrows, ncols);
-    exit(6);
+    exit(5);
   } else {
     // update with screen output dimensions
     NROWS = nrows;
@@ -337,19 +337,19 @@ display_map(char* display)
   for (int row = 1; row < max_nrows; row++) {
     for (int col = 0; col < max_ncols; col++) {
       move(row, col);
-      addch(' ');               // fill with blank
+      addch(' ');                               // fill with blank
     }
   }
   for (int row = 0; row < NROWS; row++) {
     for (int col = 0; col < NCOLS; col++) {
-      move(row+1,col);    // CURSES, +1 account for info line
+      move(row+1,col);                          // CURSES, +1 account for info line
       int idx = row * NCOLS + col;
       if (idx < strlen(display)) {                
-        addch(display[row * NCOLS + col]);     // CURSES
+        addch(display[row * NCOLS + col]);      // CURSES
       } else {
-        addch(' ');               // fill with blank
+        addch(' ');                             // fill with blank
       }
     }
   }
-  refresh();                              // CURSES
+  refresh();                                    // CURSES
 }
