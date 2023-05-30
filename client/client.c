@@ -43,48 +43,49 @@ char* MAP = "  +----------+  |..........|  |....A.....|  +-#--------+    #      
  */
 int main(int argc, char *argv[])
 {
-    /* parse the command line, validate parameters */ 
-    const char* program = argv[0];
-    // check num parameters
-    if (argc != 3 && argc != 4) {
-        fprintf(stderr, "ERROR: Expected either 2 or 3 arguments but recieved %d\n", argc-1);
-        fprintf(stderr, "USAGE: %s hostname port [playername]\n", program);
-        exit(1); // bad num arguments
-    }
-    // Defensive programming, check for null arguments
-    for (int i = 1; i < argc; i++) {
-        if (argv[i] == NULL) {
-            fprintf(stderr, "ERROR: argmument %d is NULL\n", i);
-            exit(2); // bad argument
-        }
-    }
 
-    /* initialize messages module */
-    // (without logging)
-    if (message_init(NULL) == 0) {
-        exit(3); // failure to initialize message module
-    }
+  /* parse the command line, validate parameters */ 
+  const char* program = argv[0];
+  // check num parameters
+  if (argc != 3 && argc != 4) {
+      fprintf(stderr, "ERROR: Expected either 2 or 3 arguments but recieved %d\n", argc-1);
+      fprintf(stderr, "USAGE: %s hostname port [playername]\n", program);
+      exit(1); // bad num arguments
+  }
+  // Defensive programming, check for null arguments
+  for (int i = 1; i < argc; i++) {
+      if (argv[i] == NULL) {
+          fprintf(stderr, "ERROR: argmument %d is NULL\n", i);
+          exit(2); // bad argument
+      }
+  }
 
-    /* assign command-line arguments to variables */
-    // commandline provides address for server
-    const char* serverHost = argv[1];
-    const char* serverPort = argv[2];
-    addr_t server; // address of the server
-    if (!message_setAddr(serverHost, serverPort, &server)) {
-        fprintf(stderr, "ERROR: Failure forming address from %s %s\n", serverHost, serverPort);
-        exit(4); // bad hostname/port
-    }
+  /* initialize messages module */
+  // (without logging)
+  if (message_init(NULL) == 0) {
+      exit(3); // failure to initialize message module
+  }
 
-    // Loop, waiting for input or for messages; provide callback functions.
-    // We use the 'arg' parameter to carry a pointer to 'server'.
-    
-    bool ok = message_loop(&server, 0, NULL, handleInput, handleMessage);
+  /* assign command-line arguments to variables */
+  // commandline provides address for server
+  const char* serverHost = argv[1];
+  const char* serverPort = argv[2];
+  addr_t server; // address of the server
+  if (!message_setAddr(serverHost, serverPort, &server)) {
+      fprintf(stderr, "ERROR: Failure forming address from %s %s\n", serverHost, serverPort);
+      exit(4); // bad hostname/port
+  }
 
-    // shut down the message module
-    message_done();
-    endwin(); // CURSES
+  // Loop, waiting for input or for messages; provide callback functions.
+  // We use the 'arg' parameter to carry a pointer to 'server'.
+  
+  bool ok = message_loop(&server, 0, NULL, handleInput, handleMessage);
 
-    return ok ? 0 : 1;
+  // shut down the message module
+  message_done();
+  endwin(); // CURSES
+
+  return ok ? 0 : 1;
 }
 
 /**************** handleInput ****************/
@@ -251,6 +252,7 @@ handleGRID(const char* message)
 /* takes a char* as an argument, of the GOLD message type.             */
 /* GOLD message must be in *exact* syntax as described in requirments. */
 /* displays gold values in the topline of CURSES window                */
+/* if the display line is longer than the window, it is cropped.       */
 static bool
 handleGOLD(const char* message)
 {
@@ -272,8 +274,11 @@ handleGOLD(const char* message)
       move(0, col);
       addch(' ');
     }
-    mvprintw(0,0, "Gold Collected: %d\tGold in Purse: %d\tGold Left: %d", gold_collected, gold_purse, gold_left);    // CURSES
-    refresh();                              // CURSES
+    char buffer[ncols]; //buffer string of max length
+    snprintf(buffer, ncols, "Gold Collected: %d      Gold in Purse: %d      Gold Left: %d",
+                            gold_collected, gold_purse, gold_left);
+    mvprintw(0,0, "%.*s", ncols, buffer);           // CURSES
+    refresh();                                      // CURSES
     return true;
   }
 }
