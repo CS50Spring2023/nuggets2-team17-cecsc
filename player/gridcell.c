@@ -170,7 +170,6 @@ void gridcell_print(gridcell_t* gridcell)
 
 }
 
-
 void gridcell_delete(gridcell_t* gridcell)
 {
   if (gridcell == NULL) {

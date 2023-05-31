@@ -355,28 +355,44 @@ handleKey(player_t* player, const char* key)
         moveOnMap(player, player_get_x(player)+1, player_get_y(player)+1);
         break;
      case 'H': 
-        while(moveOnMap(player, player_get_x(player)-1, player_get_y(player))){}
+        while(moveOnMap(player, player_get_x(player)-1, player_get_y(player))){
+            player_playerVisibility(player, game.map);
+        }
         break;
     case 'L': 
-        while(moveOnMap(player, player_get_x(player)+1, player_get_y(player))){}
+        while(moveOnMap(player, player_get_x(player)+1, player_get_y(player))){
+            player_playerVisibility(player, game.map);
+        }
         break;
     case 'J': 
-        while(moveOnMap(player, player_get_x(player), player_get_y(player)+1)){}
+        while(moveOnMap(player, player_get_x(player), player_get_y(player)+1)){
+            player_playerVisibility(player, game.map);
+        }
         break;
     case 'K': 
-        while(moveOnMap(player, player_get_x(player), player_get_y(player)-1)){}
+        while(moveOnMap(player, player_get_x(player), player_get_y(player)-1)){
+            player_playerVisibility(player, game.map);
+        }
         break;
     case 'Y': 
-        while(moveOnMap(player, player_get_x(player)-1, player_get_y(player)-1)){}
+        while(moveOnMap(player, player_get_x(player)-1, player_get_y(player)-1)){
+            player_playerVisibility(player, game.map);
+        }
         break;
     case 'U': 
-        while(moveOnMap(player, player_get_x(player)+1, player_get_y(player)-1)){}
+        while(moveOnMap(player, player_get_x(player)+1, player_get_y(player)-1)){
+            player_playerVisibility(player, game.map);
+        }
         break;
     case 'B': 
-        while(moveOnMap(player, player_get_x(player)-1, player_get_y(player)+1)){}
+        while(moveOnMap(player, player_get_x(player)-1, player_get_y(player)+1)){
+            player_playerVisibility(player, game.map);
+        }
         break;
     case 'N': 
-        while(moveOnMap(player, player_get_x(player)+1, player_get_y(player)+1)){}
+        while(moveOnMap(player, player_get_x(player)+1, player_get_y(player)+1)){
+            player_playerVisibility(player, game.map);
+        }
         break;
     case 'Q':
         handleQuit(player);
@@ -463,6 +479,7 @@ moveOnMap(player_t* player, int newX, int newY)
     return false;
 }
 
+
 /**************** handleQuit ****************/
 /* Recieves a player that sent quit command
 * If the player is the spectator, change the game's hasSpect boolean to false.
@@ -481,6 +498,7 @@ handleQuit(player_t* player)
         message_send(player_get_addr(player), "QUIT Thanks for playing!");
     }
 }
+
 
 /**************** dropGold ****************/
 /* Drops gold at random locations of the grid. Drops a random number of piles
@@ -531,6 +549,7 @@ dropGold()
         }
     }
 }
+
 
 /**************** updatePlayers ****************/
 /* Loops through players and sends GOLD and DISPLAY messages to their clients.
@@ -584,7 +603,7 @@ updateSpectator()
         strcpy(displayMsg, "DISPLAY\n");
         strcat(displayMsg, gridString);
         message_send(game.spect, displayMsg);
-        mem_free(gridString);
+        //mem_free(gridString);
         mem_free(displayMsg);
     }
 }

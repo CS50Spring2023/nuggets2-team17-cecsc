@@ -76,7 +76,6 @@ void player_playerVisibility(player_t* player, grid_t* grid)
 
     gridcell_t* g = grid_get(grid, player_get_x(player), player_get_y(player));
 
-
     for (int i = 0; i < grid_get_NC(grid) * grid_get_NR(grid); i++) {
 
       if (!player->boolGrid[i]) { // if it's false in the bool grid (we don't have to worry about true, can't turn to false)
