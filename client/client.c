@@ -17,6 +17,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <ncurses.h>
+#include <time.h>
 #include "message.h"
 
 // internal function prototypes
@@ -24,6 +25,7 @@ static bool handleMessage(void* arg, const addr_t from, const char* message);
 static bool handleInput(void* arg);
 static void display_map(char* display);
 static void initialize_curses(); // CURSES
+static void init_map();
 
 // handleMessage helpers
 static void handleOK();
@@ -201,7 +203,7 @@ handleOK()
 {
   /* initialize curses library */
   initialize_curses(); // CURSES
-  display_map("");
+  init_map(); // initialize with blank map
 }
 
 /**************** handleGRID ****************/
@@ -259,10 +261,20 @@ handleGOLD(const char* message)
       addch(' ');
     }
     char buffer[ncols]; //buffer string of max length
-    snprintf(buffer, ncols, "Gold Collected: %d      Gold in Purse: %d      Gold Left: %d",
-                            gold_collected, gold_purse, gold_left);
-    mvprintw(0,0, "%.*s", ncols, buffer);           // CURSES
-    refresh();                                      // CURSES
+    int len_msg = snprintf(buffer, ncols, "Player A has %d nuggets (%d nuggets unclaimed).", gold_purse, gold_left);
+    char gold_left_buffer[ncols];
+    int len_gold_left_msg = 0;
+    if (gold_collected > 0) {
+      if (ncols - len_msg > 0) { // len to buffer cannot be negative
+        len_gold_left_msg = snprintf(gold_left_buffer, ncols - len_msg, "  GOLD recieved: %d", gold_collected);
+      }
+    }
+    // copy extra message into buffer
+    for (int i = len_msg; i < len_msg + len_gold_left_msg; i++) {
+      buffer[i] = gold_left_buffer[i-len_msg];
+    }
+    mvprintw(0,0, "%.*s", ncols, buffer);
+    refresh(); // CURSES
     return true;
   }
 }
@@ -312,16 +324,7 @@ initialize_curses()
 static void
 display_map(char* display)
 {
-  // clear output
-  int max_nrows = 0;
-  int max_ncols = 0;
-  getmaxyx(stdscr, max_nrows, max_ncols);
-  for (int row = 1; row < max_nrows; row++) {
-    for (int col = 0; col < max_ncols; col++) {
-      move(row, col);
-      addch(' ');                               // fill with blank
-    }
-  }
+  // move chars from display to ncurses
   for (int row = 0; row < NROWS; row++) {
     for (int col = 0; col < NCOLS; col++) {
       move(row+1,col);                          // CURSES, +1 account for info line
@@ -334,4 +337,46 @@ display_map(char* display)
     }
   }
   refresh();                                    // CURSES
+
+  // blank map
+  int max_nrows = 0; //dummy
+  int max_ncols = 0;
+  int i = 0;
+  getmaxyx(stdscr, max_nrows, max_ncols);
+  // clear dummy variable
+  (void)max_nrows;
+  // clear temp status messages
+  for (i = 0; i < max_ncols; i++) {
+    char c = mvinch(0, i) & A_CHARTEXT;
+    if (c == '.') {
+      i++;
+      break;
+    }
+  }
+  // ensure stop character was found
+  if (i != 0) {
+    while (i < max_ncols) {
+      move(0, i);
+      addch(' ');
+      i++;
+    }
+  }
+}
+
+/* ************ init_map *********************** */
+/* fills ncurses screen with bank character ' '  */
+static void
+init_map()
+{
+  // blank map
+  int max_nrows = 0;
+  int max_ncols = 0;
+  getmaxyx(stdscr, max_nrows, max_ncols);
+  for (int row = 1; row < max_nrows; row++) {
+    for (int col = 0; col < max_ncols; col++) {
+      move(row, col);
+      addch(' ');                               // fill with blank
+    }
+  }
+  refresh();
 }
