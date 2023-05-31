@@ -39,12 +39,14 @@ static void handleDISPLAY(const char* message);
 // size of board, initialized to initial window size
 static int NROWS;
 static int NCOLS;
-static char player;
+static char player; //if non-zero, prepresents player's letter inbetween display frames
 
 /* ***************************
  *  main function
  *  Accepts either 2 or 3 arguments from command-line: hostname port [playername]
- *  
+ *  client interacts with server to play the nugget game by sending keystrokes.
+ *  Usage described in DESIGN.md
+ *
  */
 int main(int argc, char *argv[])
 {
@@ -180,6 +182,7 @@ handleMessage(void* arg, const addr_t from, const char* message)
       // send quit message
       message_send(from, "KEY Q");
       message_done();
+      // failed to initialize grid
       exit(5);
     }
 
@@ -374,36 +377,6 @@ display_map(char* display)
     }
   }
   refresh();                                    // CURSES
-
-  // /* clear previous temp message */
-  // int max_nrows = 0; //dummy
-  // int max_ncols = 0;
-  // int loc = 0;
-  // getmaxyx(stdscr, max_nrows, max_ncols);
-  // // clear dummy variable
-  // (void)max_nrows;
-  // // clear temp status messages
-  // for (loc = 0; loc < max_ncols; loc++) {
-  //   char c = mvinch(0, loc) & A_CHARTEXT;
-  //   if (c == '.') {
-  //     loc++;
-  //     break;
-  //   }
-  // }
-  // char line[max_ncols];
-  // mvinnstr(0, 0, line, max_ncols);
-  // bool refresh = (line != NULL) && (strstr(line, "unknown") != NULL);
-  // // ensure stop character was found
-  // if (loc != 0) {
-  //   while(loc < max_ncols) {
-  //     move(0, loc++);
-  //     addch(' ');
-  //   }
-  // }
-  // // if clear is required, clear
-  // if (refresh) {
-  //   refresh();
-  // }
 }
 
 /* ************ clear_temp_message ************* */
