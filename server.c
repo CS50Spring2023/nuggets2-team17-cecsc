@@ -212,6 +212,7 @@ handleMessage(void* arg, const addr_t from, const char* message)
         }
     }
     else {
+        fprintf(stderr, "ERROR: malformed message");
         message_send(from, "ERROR malformed message\n");
     }
 
@@ -400,6 +401,7 @@ handleKey(player_t* player, const char* key)
         handleQuit(player);
         break;
     default:
+        fprintf(stderr, "ERROR: unknown keystroke");
         message_send(player_get_addr(player), "ERROR: unknown keystroke");
         break;
     }
@@ -638,6 +640,9 @@ gameOver()
         sprintf(playerData, "%-3c %7d %s\n", player_get_c(curPlayer), player_get_score(curPlayer), player_get_name(curPlayer));
         strcat(gameOverMsg, playerData);
     }
+
+    //print summary
+    printf("%s", gameOverMsg);
 
     //send game over message to all players
     for (int i = 0; i<game.numPlayers; i++) {
