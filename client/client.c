@@ -375,35 +375,35 @@ display_map(char* display)
   }
   refresh();                                    // CURSES
 
-  /* clear previous temp message */
-  int max_nrows = 0; //dummy
-  int max_ncols = 0;
-  int loc = 0;
-  getmaxyx(stdscr, max_nrows, max_ncols);
-  // clear dummy variable
-  (void)max_nrows;
-  // clear temp status messages
-  for (loc = 0; loc < max_ncols; loc++) {
-    char c = mvinch(0, loc) & A_CHARTEXT;
-    if (c == '.') {
-      loc++;
-      break;
-    }
-  }
-  char line[max_ncols];
-  mvinnstr(0, 0, line, max_ncols);
-  bool refresh = (line != NULL) && (strstr(line, "unknown") != NULL);
-  // ensure stop character was found
-  if (loc != 0) {
-    while(loc < max_ncols) {
-      move(0, loc++);
-      addch(' ');
-    }
-  }
-  // if clear is required, clear
-  if (refresh) {
-    refresh();
-  }
+  // /* clear previous temp message */
+  // int max_nrows = 0; //dummy
+  // int max_ncols = 0;
+  // int loc = 0;
+  // getmaxyx(stdscr, max_nrows, max_ncols);
+  // // clear dummy variable
+  // (void)max_nrows;
+  // // clear temp status messages
+  // for (loc = 0; loc < max_ncols; loc++) {
+  //   char c = mvinch(0, loc) & A_CHARTEXT;
+  //   if (c == '.') {
+  //     loc++;
+  //     break;
+  //   }
+  // }
+  // char line[max_ncols];
+  // mvinnstr(0, 0, line, max_ncols);
+  // bool refresh = (line != NULL) && (strstr(line, "unknown") != NULL);
+  // // ensure stop character was found
+  // if (loc != 0) {
+  //   while(loc < max_ncols) {
+  //     move(0, loc++);
+  //     addch(' ');
+  //   }
+  // }
+  // // if clear is required, clear
+  // if (refresh) {
+  //   refresh();
+  // }
 }
 
 /* ************ clear_temp_message ************* */
