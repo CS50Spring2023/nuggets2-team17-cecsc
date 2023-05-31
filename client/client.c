@@ -26,9 +26,10 @@ static bool handleInput(void* arg);
 static void display_map(char* display);
 static void initialize_curses(); // CURSES
 static void init_map();
+static void display_temp_message(const char* temp);
 
 // handleMessage helpers
-static void handleOK();
+static bool handleOK();
 static bool handleGRID(const char* message);
 static bool handleGOLD(const char* message);
 static void handleDISPLAY(const char* message);
@@ -36,6 +37,7 @@ static void handleDISPLAY(const char* message);
 // size of board, initialized to initial window size
 static int NROWS;
 static int NCOLS;
+static char player;
 
 /* ***************************
  *  main function
@@ -44,7 +46,7 @@ static int NCOLS;
  */
 int main(int argc, char *argv[])
 {
-
+  
   /* parse the command line, validate parameters */ 
   const char* program = argv[0];
   // check num parameters
@@ -90,7 +92,10 @@ int main(int argc, char *argv[])
     // connect as spectator
     message_send(server, "SPECTATE");
     // no ok message is sent, auto-initialize
-    handleOK();
+    if(handleOK(NULL)) {
+      message_done();
+      exit(6);
+    }
   }
 
   // Loop, waiting for input or for messages; provide callback functions.
@@ -156,9 +161,7 @@ handleMessage(void* arg, const addr_t from, const char* message)
 
   // Find the position of the header within the message
   if (strncmp(message, "OK ", strlen("OK ")) == 0){
-    handleOK();
-
-    return false;
+    return handleOK(message);
 
   } else if (strncmp(message, "GRID ", strlen("GRID ")) == 0) {
     handleGRID(message);
@@ -183,7 +186,8 @@ handleMessage(void* arg, const addr_t from, const char* message)
     return true;
 
   } else if (strncmp(message, "ERROR ", strlen("ERROR ")) == 0) {
-    // fprintf(stdout, "ERROR: From server '%s'\n", message);
+    const char* temp = strchr(message, ':') + 1;
+    display_temp_message(temp);
     return false;
 
   } else {
@@ -198,12 +202,19 @@ handleMessage(void* arg, const addr_t from, const char* message)
 /**************** handleOK ****************/
 /* no arguments                                           */
 /* initializes CURSES, fills window with blank ' ' chars  */
-static void
-handleOK()
+static bool
+handleOK(const char* message)
 {
+  player = 0;
+  if (message != NULL) {
+    if (sscanf(message, "OK %c", &player) != 1) {
+      return true;
+    }
+  }
   /* initialize curses library */
   initialize_curses(); // CURSES
   init_map(); // initialize with blank map
+  return false;
 }
 
 /**************** handleGRID ****************/
@@ -261,17 +272,22 @@ handleGOLD(const char* message)
       addch(' ');
     }
     char buffer[ncols]; //buffer string of max length
-    int len_msg = snprintf(buffer, ncols, "Player A has %d nuggets (%d nuggets unclaimed).", gold_purse, gold_left);
-    char gold_left_buffer[ncols];
-    int len_gold_left_msg = 0;
-    if (gold_collected > 0) {
-      if (ncols - len_msg > 0) { // len to buffer cannot be negative
-        len_gold_left_msg = snprintf(gold_left_buffer, ncols - len_msg, "  GOLD recieved: %d", gold_collected);
+    if (player == 0) {
+      snprintf(buffer, ncols, "Spectator: %d nuggets unclaimed.", gold_left);
+    } else {
+      int len_msg = snprintf(buffer, ncols, "Player %c has %d nuggets (%d nuggets unclaimed).", player, gold_purse, gold_left);
+      char gold_left_buffer[ncols];
+      int len_gold_left_msg = 0;
+      if (gold_collected > 0) {
+        if (ncols - len_msg > 0) { // len to buffer cannot be negative
+          len_gold_left_msg = snprintf(gold_left_buffer, ncols - len_msg, "  GOLD recieved: %d", gold_collected);
+        }
       }
-    }
-    // copy extra message into buffer
-    for (int i = len_msg; i < len_msg + len_gold_left_msg; i++) {
-      buffer[i] = gold_left_buffer[i-len_msg];
+      // copy extra message into buffer
+      for (int i = len_msg; i < len_msg + len_gold_left_msg; i++) {
+        buffer[i] = gold_left_buffer[i-len_msg];
+      }
+      buffer[len_msg+len_gold_left_msg] = '\0';
     }
     mvprintw(0,0, "%.*s", ncols, buffer);
     refresh(); // CURSES
@@ -338,29 +354,55 @@ display_map(char* display)
   }
   refresh();                                    // CURSES
 
-  // blank map
+  /* clear previous temp message */
   int max_nrows = 0; //dummy
   int max_ncols = 0;
-  int i = 0;
+  int loc = 0;
   getmaxyx(stdscr, max_nrows, max_ncols);
   // clear dummy variable
   (void)max_nrows;
   // clear temp status messages
-  for (i = 0; i < max_ncols; i++) {
-    char c = mvinch(0, i) & A_CHARTEXT;
+  for (loc = 0; loc < max_ncols; loc++) {
+    char c = mvinch(0, loc) & A_CHARTEXT;
     if (c == '.') {
-      i++;
+      loc++;
       break;
     }
   }
   // ensure stop character was found
-  if (i != 0) {
-    while (i < max_ncols) {
-      move(0, i);
+  if (loc != 0) {
+    while(loc < max_ncols) {
+      move(0, loc++);
       addch(' ');
-      i++;
     }
   }
+}
+
+/* ************ display_temp_message ************* */
+/* display temp string after gold status message   */
+static void
+display_temp_message(const char* temp)
+{
+  int max_nrows = 0; //dummy
+  int max_ncols = 0;
+  int loc = 0;
+  getmaxyx(stdscr, max_nrows, max_ncols);
+  // clear dummy variable
+  (void)max_nrows;
+  // clear temp status messages
+  for (loc = 0; loc < max_ncols; loc++) {
+    char c = mvinch(0, loc) & A_CHARTEXT;
+    if (c == '.') {
+      loc++;
+      break;
+    }
+  }
+
+  // if new temp message is needed
+  if (temp != NULL) {
+    mvprintw(0,loc+1, "%.*s", max_ncols-(loc+2), temp);
+  }
+  refresh();
 }
 
 /* ************ init_map *********************** */
