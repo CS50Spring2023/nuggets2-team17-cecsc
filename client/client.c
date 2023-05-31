@@ -28,6 +28,7 @@ static void display_map(char* display);
 static void initialize_curses(); // CURSES
 static void init_map();
 static void display_temp_message(const char* temp);
+static void clear_temp_message();
 
 // handleMessage helpers
 static bool handleOK();
@@ -141,6 +142,9 @@ handleInput(void* arg)
   strcpy(message, "KEY ");
   strcat(message, &c);
   message[strlen("KEY ") + 1] = '\0';
+
+  // clear previous temp message (if it exists)
+  clear_temp_message();
 
   // send keystroke
   message_send(*serverp, message);
@@ -400,6 +404,35 @@ display_map(char* display)
   if (refresh) {
     refresh();
   }
+}
+
+/* ************ clear_temp_message ************* */
+/* display temp string after gold status message   */
+static void
+clear_temp_message()
+{
+  /* clear previous temp message */
+  int max_nrows = 0; //dummy
+  int max_ncols = 0;
+  int loc = 0;
+  getmaxyx(stdscr, max_nrows, max_ncols);
+  // clear dummy variable
+  (void)max_nrows;
+  // clear temp status messages
+  for (loc = 0; loc < max_ncols; loc++) {
+    char c = mvinch(0, loc) & A_CHARTEXT;
+    if (c == '.') {
+      loc++;
+      break;
+    }
+  }
+  if (loc != 0) {
+    while(loc < max_ncols) {
+      move(0, loc++);
+      addch(' ');
+    }
+  }
+  refresh();
 }
 
 /* ************ display_temp_message ************* */
