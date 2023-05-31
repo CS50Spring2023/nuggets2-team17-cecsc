@@ -10,6 +10,7 @@
  *             3 -> failure to initialize messages module
  *             4 -> bad hostname or port
  *             5 -> failed screen verification
+ *             6 -> failed to initalize player (malformed OK message)
  */
 
 #include <stdio.h>
@@ -93,8 +94,11 @@ int main(int argc, char *argv[])
     message_send(server, "SPECTATE");
     // no ok message is sent, auto-initialize
     if(handleOK(NULL)) {
+      // send quit message
+      message_send(server, "KEY Q");
       message_done();
       exit(6);
+      // failed to initialize player name
     }
   }
 
@@ -163,7 +167,12 @@ handleMessage(void* arg, const addr_t from, const char* message)
     return handleOK(message);
 
   } else if (strncmp(message, "GRID ", strlen("GRID ")) == 0) {
-    handleGRID(message);
+    if(!handleGRID(message)) {
+      // send quit message
+      message_send(from, "KEY Q");
+      message_done();
+      exit(5);
+    }
 
     return false;
 
@@ -191,7 +200,7 @@ handleMessage(void* arg, const addr_t from, const char* message)
 
   } else {
     // MALFORMED MESSAGE -- IGNORE
-    // fprintf(stderr, "ERROR: Malformed message '%s'\n", message);
+    fprintf(stderr, "ERROR: Malformed message '%s'\n", message);
     return false;
   }
   
@@ -235,7 +244,7 @@ handleGRID(const char* message)
   if (nrows+1 > NROWS || ncols > NCOLS) {
     endwin(); // CURSES
     fprintf(stderr, "ERROR: incompatible screen of size [%d, %d] for [%d, %d]\n", NROWS, NCOLS, nrows+1, ncols);
-    exit(5);
+    return false;
   } else {
     // update with screen output dimensions
     NROWS = nrows+1;
