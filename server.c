@@ -239,10 +239,12 @@ addPlayer(addr_t from, const char* name)
     printf("name: %s\n", name);
 
     const int maxPlayers = 26;
-   // const int maxNameLength = 50; //max number of chars in player's name
 
     if (game.numPlayers == maxPlayers-1) {
         message_send(from, "QUIT Game is full: no more players can join.");
+    }
+    else if (name == NULL) {
+        message_send(from, "QUIT Sorry - you must provide player's name.");
     }
     else { //create new player and add to array of players
         
