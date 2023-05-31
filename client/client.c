@@ -107,7 +107,6 @@ int main(int argc, char *argv[])
   endwin(); // CURSES
   // shut down the message module
   message_done();
-  fprintf(stdout, "SHUT DOWN COMPLETE"); // ### DEBUGGING ###
 
   return ok ? 0 : 1;
 }
@@ -369,12 +368,19 @@ display_map(char* display)
       break;
     }
   }
+  char line[max_ncols];
+  mvinnstr(0, 0, line, max_ncols);
+  bool refresh = (line != NULL) && (strstr(line, "unknown") != NULL);
   // ensure stop character was found
   if (loc != 0) {
     while(loc < max_ncols) {
       move(0, loc++);
       addch(' ');
     }
+  }
+  // if clear is required, clear
+  if (refresh) {
+    refresh();
   }
 }
 
