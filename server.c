@@ -496,6 +496,17 @@ handleQuit(player_t* player)
         message_send(game.spect, "QUIT Thanks for watching!");
     }
     else {
+        //remove player's symbol from map
+        int curX = player_get_x(player);
+        int curY = player_get_y(player);
+        gridcell_t* curCell = grid_get(game.map, curX, curY);
+        if(gridcell_getRoom(curCell)) {
+            grid_set(game.map, curX, curY, '.');
+        }
+        else {
+            grid_set(game.map, curX, curY, '#');
+        }
+
         player_deactivate(player);
         message_send(player_get_addr(player), "QUIT Thanks for playing!");
     }
