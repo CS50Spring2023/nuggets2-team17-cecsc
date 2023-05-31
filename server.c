@@ -411,6 +411,23 @@ moveOnMap(player_t* player, int newX, int newY)
                 player_set_x(otherPlayer, curX);
                 player_set_y(otherPlayer, curY);
 
+                //steal 10% of their gold
+                int steal = (int) (player_get_score(player) / 10);
+                player_set_score(player, (player_get_score(player) + steal));
+                player_set_score(otherPlayer, (player_get_score(otherPlayer) - steal));
+
+                //send STEAL message to player
+                char goldMsg[100];
+                sprintf(goldMsg, "STOLE GOLD %d %d %d\n", steal, player_get_score(player), game.numGold);
+                message_send(player_get_addr(player), goldMsg);
+
+                //send TAKEN message to otherPlayer
+                char stoleMsg[100];
+                sprintf(stoleMsg, "GOLD STOLEN %d %d %d\n", steal, player_get_score(otherPlayer), game.numGold);
+                message_send(player_get_addr(otherPlayer), goldMsg);
+
+                
+
                 grid_set(game.map, newX, newY, curChar); 
                 player_set_x(player, newX);
                 player_set_y(player, newY);
