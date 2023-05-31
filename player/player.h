@@ -32,7 +32,7 @@ bool player_get_boolGrid(player_t* player, int index);
 
 char player_get_c(player_t* player);
 
-const char* player_get_name(player_t* player);
+char* player_get_name(player_t* player);
 
 int player_get_score(player_t* player);
 
