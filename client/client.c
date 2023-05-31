@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
     // connect as spectator
     message_send(server, "SPECTATE");
     // no ok message is sent, auto-initialize
-    if(handleOK(NULL)) {
+    if(!handleOK(NULL)) {
       // send quit message
       message_send(server, "KEY Q");
       message_done();
@@ -164,7 +164,12 @@ handleMessage(void* arg, const addr_t from, const char* message)
 
   // Find the position of the header within the message
   if (strncmp(message, "OK ", strlen("OK ")) == 0){
-    return handleOK(message);
+    if(!handleOK(message)) {
+      // send quit message
+      message_send(from, "KEY Q");
+      message_done();
+      exit(6);
+    }
 
   } else if (strncmp(message, "GRID ", strlen("GRID ")) == 0) {
     if(!handleGRID(message)) {
@@ -194,6 +199,9 @@ handleMessage(void* arg, const addr_t from, const char* message)
     return true;
 
   } else if (strncmp(message, "ERROR ", strlen("ERROR ")) == 0) {
+    // log error
+    fprintf(stderr, "%s\n", message);
+    // display to player
     const char* temp = strchr(message, ':') + 1;
     display_temp_message(temp);
     return false;
@@ -216,13 +224,13 @@ handleOK(const char* message)
   player = 0;
   if (message != NULL) {
     if (sscanf(message, "OK %c", &player) != 1) {
-      return true;
+      return false;
     }
   }
   /* initialize curses library */
   initialize_curses(); // CURSES
   init_map(); // initialize with blank map
-  return false;
+  return true;
 }
 
 /**************** handleGRID ****************/
@@ -336,6 +344,7 @@ initialize_curses()
 
   cbreak(); // actually, this is the default
   noecho(); // don't show the characters users type
+  curs_set(0); // set cursor to invisible
 
   // I like yellow on a black background
   start_color();
