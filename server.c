@@ -632,4 +632,9 @@ gameOver()
     for (int i = 0; i<game.numPlayers; i++) {
         message_send(player_get_addr(game.allPlayers[i]), gameOverMsg);
     }
+
+    //send game over message to spectator
+    if (game.hasSpect) {
+        message_send(game.spect, gameOverMsg);
+    }
 }
