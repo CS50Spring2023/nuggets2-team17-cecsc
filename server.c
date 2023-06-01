@@ -401,8 +401,8 @@ handleKey(player_t* player, const char* key)
         handleQuit(player);
         break;
     default:
-        fprintf(stderr, "ERROR: unknown keystroke");
-        message_send(player_get_addr(player), "ERROR: unknown keystroke");
+        fprintf(stderr, "ERROR usage: unknown keystroke");
+        message_send(player_get_addr(player), "ERROR usage: unknown keystroke");
         break;
     }
 }
