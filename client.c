@@ -33,14 +33,14 @@ typedef struct data {
 // internal function prototypes
 static bool handleMessage(void* arg, const addr_t from, const char* message);
 static bool handleInput(void* arg);
-static void display_map(char* display);
 static void initialize_curses(); // CURSES
 static void init_map();
+static void display_map(char* display);
 static void display_temp_message(const char* temp);
 static void clear_temp_message();
 
 // handleMessage helpers
-static bool handleOK();
+static bool handleOK(const char* message);
 static bool handleGRID(const char* message);
 static bool handleGOLD(const char* message);
 static void handleDISPLAY(const char* message);
@@ -82,7 +82,8 @@ int main(int argc, char *argv[])
   /* initialize messages module */
   // (without logging)
   if (message_init(NULL) == 0) {
-      exit(3); // failure to initialize message module
+    free(data);
+    exit(3); // failure to initialize message module
   }
 
   /* assign command-line arguments to variables */
@@ -92,6 +93,7 @@ int main(int argc, char *argv[])
   addr_t server; // address of the server
   if (!message_setAddr(serverHost, serverPort, &server)) {
       fprintf(stderr, "ERROR: Failure forming address from %s %s\n", serverHost, serverPort);
+      free(data);
       exit(4); // bad hostname/port
   }
 
@@ -112,6 +114,7 @@ int main(int argc, char *argv[])
       // send quit message
       message_send(server, "KEY Q");
       message_done();
+      free(data);
       exit(6);
       // failed to initialize player name
     }
@@ -122,6 +125,9 @@ int main(int argc, char *argv[])
   
   bool ok = message_loop(&server, 0, NULL, handleInput, handleMessage);
 
+
+  // clear data
+  free(data);
   // close curses
   endwin(); // CURSES
   // shut down the message module
@@ -131,7 +137,7 @@ int main(int argc, char *argv[])
 }
 
 /**************** handleInput ****************/
-/* stdin has input ready; read a line and send it to the client.
+/* stdin has input ready; read a char and send it to the server.
  * Return true if the message loop should exit, otherwise false.
  * i.e., return true if EOF was encountered on stdin, or fatal error.
  */
@@ -186,6 +192,7 @@ handleMessage(void* arg, const addr_t from, const char* message)
       // send quit message
       message_send(from, "KEY Q");
       message_done();
+      free(data);
       exit(6);
     }
 
@@ -195,6 +202,7 @@ handleMessage(void* arg, const addr_t from, const char* message)
       message_send(from, "KEY Q");
       message_done();
       // failed to initialize grid
+      free(data);
       exit(5);
     }
 
@@ -235,8 +243,7 @@ handleMessage(void* arg, const addr_t from, const char* message)
 }
 
 /**************** handleOK ****************/
-/* no arguments                                           */
-/* initializes CURSES, fills window with blank ' ' chars  */
+/* fills player arg in data with char sent by server or 0 otherwise */
 static bool
 handleOK(const char* message)
 {
@@ -270,6 +277,7 @@ handleGRID(const char* message)
   // if not null, verify screen size
   while (nrows+1 > data->NROWS || ncols > data->NCOLS) {
     endwin(); // CURSES
+
 
     fprintf(stderr, "ERROR: incompatible screen of size [%d, %d] for [%d, %d]\n", data->NROWS, data->NCOLS, nrows+1, ncols);
     mvprintw(0,0, "ERROR: incompatible screen of size [%d, %d] for [%d, %d]\nRESIZE and press ENTER to continue", data->NROWS, data->NCOLS, nrows+1, ncols);
@@ -398,7 +406,7 @@ display_map(char* display)
 }
 
 /* ************ clear_temp_message ************* */
-/* display temp string after gold status message   */
+/* clears temp string after gold status message   */
 static void
 clear_temp_message()
 {
@@ -471,19 +479,19 @@ init_map()
   refresh();
 }
 
-/* ************ data_new *********************** */
+/* ************ data_new *********** */
 /* allocates memory for data struct  */
 static data_t*
 data_new()
 {
   // allocate memory for array of pointers
   data_t* data = malloc(sizeof(data_t));
-  data->NROWS = -1;
-  data->NCOLS = -1;
-  data->player = 0;
   if (data == NULL) {
       exit(3);
   }
+  data->NROWS = -1;
+  data->NCOLS = -1;
+  data->player = 0;
 
   return data;
 }
