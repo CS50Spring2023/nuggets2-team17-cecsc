@@ -2,7 +2,6 @@
 
 While the Nuggets project requires a lot of work, there are always some brave(?) teams that want to reach a little further. My first warning is always:
 
-> Be sure you have everything that is required complete before considering more.  Extra credit will not be worth the effort if it only serve to make up for points lost due to a missing requirement or surprising test failure.
 
 That said, we do have opportunities for up to **10 points** extra credit.  Extra credit is always graded strictly, so proceed carefully.
 
